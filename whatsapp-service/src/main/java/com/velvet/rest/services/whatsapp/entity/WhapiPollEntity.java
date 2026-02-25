@@ -1,7 +1,5 @@
 package com.velvet.rest.services.whatsapp.entity;
 
-import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -56,10 +54,4 @@ public class WhapiPollEntity extends BaseEntity {
 
 	@Column(name = "created_at_ts")
 	private Long createdAtTs;
-
-	@Column(name = "meal_type", length = 50)
-	private String mealType;
-
-	@Column(name = "delivery_date")
-	private Date deliveryDate;
 }

@@ -12,4 +12,6 @@ public interface WhapiMessageRepository extends JpaRepository<WhapiMessageEntity
 	Optional<WhapiMessageEntity> findByWaMessageId(String waMessageId);
 
 	List<WhapiMessageEntity> findByChat_IdOrderByMessageTimestampDesc(Long chatId);
+
+	boolean existsByChat_WaChatIdAndFromMeFalseAndMessageTimestampGreaterThan(String waChatId, Long timestamp);
 }

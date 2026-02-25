@@ -47,9 +47,6 @@ public class WhapiPollOptionEntity extends BaseEntity {
 	@Column(name = "option_name", nullable = false)
 	private String optionName;
 
-	@Column(name = "sku_code", length = 50)
-	private String skuCode;
-
 	@Column(name = "vote_count")
 	private Integer voteCount = 0;
 }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.velvet.rest.services.whatsapp.beans.webhook.WhapiWebhookRequest;
 import com.velvet.rest.services.whatsapp.services.WhapiEventService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ public class WhapiWebhookController {
 	private WhapiEventService eventService;
 
 	@PostMapping("/whatsapp/whapi/webhook")
-	public ResponseEntity<Void> receiveEvent(@RequestBody Map<String, Object> payload, @RequestHeader Map<String, String> headers) {
+	public ResponseEntity<Void> receiveEvent(@RequestBody WhapiWebhookRequest payload, @RequestHeader Map<String, String> headers) {
 		try {
 			log.info("WHAPI webhook payload: {}", payload);
 			log.info("WHAPI webhook headers: {}", headers);

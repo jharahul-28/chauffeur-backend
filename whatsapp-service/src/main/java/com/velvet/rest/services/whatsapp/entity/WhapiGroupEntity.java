@@ -60,9 +60,9 @@ public class WhapiGroupEntity extends BaseEntity {
 	@Column(name = "admin_add_member_mode")
 	private Boolean adminAddMemberMode;
 
-	@Column(name = "org_id")
-	private UUID orgId;
-
 	@Column(name = "last_performed_by")
 	private String lastPerformedBy;
+
+	@Column(name = "org_id")
+	private UUID orgId;
 }

@@ -1,13 +1,15 @@
 package com.velvet.rest.services.whatsapp.services;
 
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.velvet.rest.services.whatsapp.beans.CreateAppUserRequest;
+import com.velvet.rest.services.whatsapp.beans.webhook.WhapiGroupParticipantsPayload;
+import com.velvet.rest.services.whatsapp.beans.webhook.WhapiGroupPayload;
+import com.velvet.rest.services.whatsapp.beans.webhook.WhapiParticipantPayload;
+import com.velvet.rest.services.whatsapp.beans.webhook.WhapiWebhookRequest;
 import com.velvet.rest.services.whatsapp.clients.WhatsappClientService;
 import com.velvet.rest.services.whatsapp.entity.WhapiChatEntity;
 import com.velvet.rest.services.whatsapp.entity.WhapiGroupEntity;
@@ -34,28 +36,26 @@ public class WhapiGroupEventHandler {
 	@Autowired
 	private WhatsappClientService clientService;
 
-	@SuppressWarnings("unchecked")
-	public void handle(Map<String, Object> payload) {
+	public void handle(WhapiWebhookRequest payload) {
 
 		// Handle full group creation/update events
-		List<Map<String, Object>> groups = (List<Map<String, Object>>) payload.get("groups");
+		List<WhapiGroupPayload> groups = payload.getGroups();
 		if (groups != null && !groups.isEmpty()) {
 			handleGroupsPayload(groups);
 		}
 
 		// Handle participant update events (add, remove, promote, demote)
-		List<Map<String, Object>> groupsParticipants = (List<Map<String, Object>>) payload.get("groups_participants");
+		List<WhapiGroupParticipantsPayload> groupsParticipants = payload.getGroupsParticipants();
 		if (groupsParticipants != null && !groupsParticipants.isEmpty()) {
 			handleParticipantsUpdate(groupsParticipants);
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private void handleGroupsPayload(List<Map<String, Object>> groups) {
-		for (Map<String, Object> g : groups) {
+	private void handleGroupsPayload(List<WhapiGroupPayload> groups) {
+		for (WhapiGroupPayload g : groups) {
 
-			String waGroupId = (String) g.get("id");
-			String groupName = (String) g.get("name");
+			String waGroupId = g.getId();
+			String groupName = g.getName();
 
 			// Upsert chat
 			WhapiChatEntity chat = chatRepository.findByWaChatId(waGroupId)
@@ -68,20 +68,23 @@ public class WhapiGroupEventHandler {
 			WhapiGroupEntity group = groupRepository.findByWaGroupId(waGroupId)
 					.orElseGet(() -> WhapiGroupEntity.builder().chat(savedChat).waGroupId(waGroupId).build());
 			group.setName(groupName);
-			group.setCreatedAtTs(g.get("created_at") != null ? ((Number) g.get("created_at")).longValue() : null);
-			group.setCreatedByWaId((String) g.get("created_by"));
-			group.setAdminAddMemberMode((Boolean) g.get("adminAddMemberMode"));
-			group.setParticipantCount(g.get("participants_count") != null ? ((Number) g.get("participants_count")).intValue() : null);
+			group.setCreatedAtTs(g.getCreatedAt());
+			group.setCreatedByWaId(g.getCreatedBy());
+			group.setAdminAddMemberMode(g.getAdminAddMemberMode());
+			group.setParticipantCount(g.getParticipantsCount());
 			group = groupRepository.save(group);
 
 			// Reset participants (group creation event)
 			participantRepository.deleteByGroupId(group.getId());
 
-			List<Map<String, Object>> participants = (List<Map<String, Object>>) g.get("participants");
+			List<WhapiParticipantPayload> participants = g.getParticipants();
 			if (participants != null) {
-				for (Map<String, Object> p : participants) {
-					WhapiGroupParticipantEntity participant = WhapiGroupParticipantEntity.builder().group(group).waUserId((String) p.get("id"))
-							.role((String) p.get("rank")).build();
+				for (WhapiParticipantPayload p : participants) {
+					WhapiGroupParticipantEntity participant = WhapiGroupParticipantEntity.builder()
+							.group(group)
+							.waUserId(p.getId())
+							.role(p.getRank())
+							.build();
 					participantRepository.save(participant);
 				}
 			}
@@ -90,13 +93,12 @@ public class WhapiGroupEventHandler {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private void handleParticipantsUpdate(List<Map<String, Object>> groupsParticipants) {
-		for (Map<String, Object> gp : groupsParticipants) {
+	private void handleParticipantsUpdate(List<WhapiGroupParticipantsPayload> groupsParticipants) {
+		for (WhapiGroupParticipantsPayload gp : groupsParticipants) {
 
-			String groupId = (String) gp.get("group_id");
-			String action = (String) gp.get("action");
-			List<String> participants = (List<String>) gp.get("participants");
+			String groupId = gp.getGroupId();
+			String action = gp.getAction();
+			List<String> participants = gp.getParticipants();
 
 			if (groupId == null || action == null || participants == null) {
 				log.warn("Invalid groups_participants payload: missing required fields");
@@ -148,16 +150,16 @@ public class WhapiGroupEventHandler {
 			}
 
 			// Ensure user exists in user-service and map orgId
-			createAppUser(waUserId, group.getOrgId());
+			createAppUser(waUserId);
 		}
 		// Update participant count
 		updateParticipantCount(group);
 	}
 
-	private void createAppUser(String waUserId, UUID orgId) {
+	private void createAppUser(String waUserId) {
 		try {
 			String phone = waUserId.contains("@") ? waUserId.substring(0, waUserId.indexOf("@")) : waUserId;
-			clientService.createAppUser(new CreateAppUserRequest(phone, orgId));
+			clientService.createAppUser(new CreateAppUserRequest(phone));
 			log.info("User ensured for phone: {}", phone);
 		} catch (Exception e) {
 			log.error("Failed to ensure user for waUserId: {}", waUserId, e);
