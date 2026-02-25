@@ -141,16 +141,16 @@ public class CommonConstants {
 	public static final String LOAD_BALANCER_PROPERTY = "service.loadbalancer.url";
 
 	/** The Constant APPLICATION_TIME_ZONE. */
-	public static final String APPLICATION_TIME_ZONE = "hmc.application.timezone";
+	public static final String APPLICATION_TIME_ZONE = "velvet.application.timezone";
 
 	/** The Constant TZ_ASIA_CALCUTTA. */
 	public static final String TZ_ASIA_CALCUTTA = "Asia/Calcutta";
 
 	/** The Constant PRIMARY_DBPASS_PROPERTY. */
-	public static final String PRIMARY_DBPASS_PROPERTY = "hmc.dbserver.primary.password";
+	public static final String PRIMARY_DBPASS_PROPERTY = "velvet.dbserver.primary.password";
 
 	/** The Constant REPLICA_DBPASS_PROPERTY. */
-	public static final String REPLICA_DBPASS_PROPERTY = "hmc.dbserver.replica.password";
+	public static final String REPLICA_DBPASS_PROPERTY = "velvet.dbserver.replica.password";
 
 	/** Constant <code>VALIDATION_ERROR_MSG="Validation Error(s)"</code> */
 	public static final String VALIDATION_ERROR_MSG = "Validation Error(s)";
@@ -216,7 +216,7 @@ public class CommonConstants {
 	public static final String MAX_RECORD_LIMIT_EXPORT = "MAX_RECORD_LIMIT_EXPORT";
 
 	/** Constant for application control flag */
-	public static final String APP_CONTROL_FLAG = "hmc.app.control.flag";
+	public static final String APP_CONTROL_FLAG = "velvet.app.control.flag";
 
 	public static final String NO_SESSION_ENDPOINTS_QUALIFIER = "noSessionEndpoints";
 	public static final String IMAGE_SUFFIX = "file_";

@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "hmc.api-encryption")
+@ConfigurationProperties(prefix = "velvet.api-encryption")
 public class ApiEncryptionProperties {
 
 	private boolean enabled = false;
