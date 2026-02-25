@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.velvet.rest</groupId>
+		<artifactId>velvet-java-parent</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+
+	<groupId>com.velvet.rest.services</groupId>
+	<artifactId>velvet-nucleus-service</artifactId>
+	<name>velvet nucleus application</name>
+	<packaging>pom</packaging>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.velvet.rest.services.framework</groupId>
+				<artifactId>velvet-java-framework</artifactId>
+				<version>1.0-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.velvet.rest.services.app</groupId>
+				<artifactId>velvet-user-service</artifactId>
+				<version>1.0-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.velvet.rest.services.app</groupId>
+				<artifactId>velvet-util-service</artifactId>
+				<version>1.0-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.velvet.rest.services.app</groupId>
+				<artifactId>velvet-whatsapp-service</artifactId>
+				<version>1.0-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.velvet.rest.services.app</groupId>
+				<artifactId>velvet-nucleus-app-boot</artifactId>
+				<version>1.0-SNAPSHOT</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<modules>
+		<module>nucleus-app-boot</module>
+		<module>user-service</module>
+		<module>util-service</module>
+		<module>whatsapp-service</module>
+	</modules>
+</project>

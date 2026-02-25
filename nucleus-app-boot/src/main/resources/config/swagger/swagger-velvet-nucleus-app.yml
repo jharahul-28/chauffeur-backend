@@ -1,0 +1,13 @@
+title: Velvet Nucleus Service
+description: Velvet Nucleus Service
+version: 1.0
+termsOfServiceUrl: https://velvetexperience.com
+contact:
+    name: velvet experience
+    url: #
+    email: support@velvetexperience.com
+license: Copyright Licence
+licenseUrl: https://velvetexperience.com
+host_local: localhost:9410
+host_dev: dev-api.velvetexperience.com
+host_prod: api.velvetexperience.com
