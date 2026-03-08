@@ -1,0 +1,16 @@
+package com.velvet.rest.services.user.beans;
+
+import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import lombok.Data;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Data
+public class ChauffeurMetadata implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	private Integer numberOfRides = 0;
+}

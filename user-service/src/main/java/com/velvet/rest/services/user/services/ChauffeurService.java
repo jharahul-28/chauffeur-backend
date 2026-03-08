@@ -4,7 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.velvet.rest.common.beans.ErrorBean;
 import com.velvet.rest.common.dbsupport.crud.BaseCrudRepository;
+import com.velvet.rest.common.dbsupport.pagination.PageAndSortRequest.SortDirection;
+import com.velvet.rest.common.dbsupport.pagination.PageAndSortResult;
+import com.velvet.rest.common.exceptions.ValidationException;
+import com.velvet.rest.common.utils.CollectionUtils;
 import com.velvet.rest.common.utils.ParamsUtils;
 import com.velvet.rest.common.websupport.base.BaseService;
 import com.velvet.rest.services.user.entity.ChauffeurEntity;
@@ -36,6 +44,17 @@ public class ChauffeurService implements UserService, BaseService<ChauffeurEntit
 		return chauffeurRepository.save(entity);
 	}
 
+	public PageAndSortResult<ChauffeurEntity> findAllByPage(Integer pageSize, Integer pageNo, Map<String, Object> filters, Map<String, SortDirection> sort) {
+		if (CollectionUtils.isEmpty(filters)) {
+			filters = new HashMap<>();
+		}
+		try {
+			return findPagedRecords(filters, sort, pageSize, pageNo);
+		} catch (Exception e) {
+			throw new ValidationException(ErrorBean.withError("FETCH_ERROR", e.getMessage(), null));
+		}
+	}
+
 	public ChauffeurEntity findByPhone(String phone) {
 		return chauffeurRepository.findByPhone(phone);
 	}
@@ -61,6 +80,10 @@ public class ChauffeurService implements UserService, BaseService<ChauffeurEntit
 	public void logout() {
 		final Long id = userService.getSessionUserId();
 		sessionService.doLogout(id);
+	}
+
+	public void logoutById(Long id) {
+		sessionService.doLogoutByUserId(id);
 	}
 
 	@Override

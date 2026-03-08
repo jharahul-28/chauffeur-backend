@@ -1,11 +1,12 @@
 package com.velvet.rest.services.user.beans;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
-import com.velvet.rest.services.user.constants.UserConstants.Gender;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
@@ -13,22 +14,28 @@ import lombok.ToString;
  */
 @Data
 @ToString
+@EqualsAndHashCode(callSuper = true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @ApiModel(description = "Chauffeur details")
 public class ChauffeurBean extends UserBean {
 
 	private static final long serialVersionUID = -3969316166203486850L;
 
-	private String name;
+	private String firstName;
 
-	private String phone;
+	private String lastName;
 
-	private String email;
+	private String licenseNumber;
 
-	private Gender gender;
+	private LocalDate dateOfBirth;
 
-	private Date dob;
+	private String documents;
 
-	private Integer status;
+	private Double rating;
+
+	private Double workingHours;
+
+	private ChauffeurMetadata metadata;
 
 	public static ChauffeurBean newInstance() {
 		return new ChauffeurBean();

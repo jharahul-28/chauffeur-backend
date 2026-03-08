@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 import com.velvet.rest.common.beans.ErrorBean;
 import com.velvet.rest.common.constants.CommonConstants;
 import com.velvet.rest.common.exceptions.ValidationException;
@@ -66,7 +68,14 @@ public class ChauffeurAuthController implements BaseController {
 	public void generateOtp(@Valid @RequestBody LoginGenerateOtpRequest otpRequest, @ApiIgnore Errors errors) {
 		logger.info("generateOtp :: request: {}", otpRequest);
 		String phone = otpRequest.getCountryCode() + otpRequest.getPhone();
-		otpService.generatePhoneOtp(null, phone, otpRequest.getVerificationId());
+		ChauffeurEntity chauffeur = chauffeurService.findByPhone(phone);
+		if (chauffeur == null) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.USER_NOT_FOUND, "No chauffeur account found for this phone number. Please contact admin.", "phone"));
+		}
+		if (BooleanUtils.isTrue(chauffeur.getBlocked())) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.USER_BLOCKED, "User is blocked. Please contact support.", "blocked"));
+		}
+		otpService.generatePhoneOtp(chauffeur.getId(), phone, otpRequest.getVerificationId());
 	}
 
 	/**
@@ -78,13 +87,13 @@ public class ChauffeurAuthController implements BaseController {
 		logger.info("verifyOtpAndLogin :: request: {}", otpRequest);
 		String phone = otpRequest.getCountryCode() + otpRequest.getPhone();
 		ChauffeurEntity chauffeur = chauffeurService.findByPhone(phone);
-		if (chauffeur != null && chauffeur.getBlocked().equals(true)) {
+		if (chauffeur == null) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.USER_NOT_FOUND, "No chauffeur account found for this phone number. Please contact admin.", "phone"));
+		}
+		if (BooleanUtils.isTrue(chauffeur.getBlocked())) {
 			throw new ValidationException(ErrorBean.withError(AppErrors.USER_BLOCKED, "User is blocked. Please contact support.", "blocked"));
 		}
-		chauffeurService.verifyOtp(chauffeur != null ? chauffeur.getId() : null, phone, otpRequest.getOtp());
-		if (chauffeur == null) {
-			chauffeur = chauffeurService.createChauffeur(phone, USER_TYPE);
-		}
+		chauffeurService.verifyOtp(chauffeur.getId(), phone, otpRequest.getOtp());
 		return buildLoginResponse(chauffeur);
 	}
 
@@ -104,7 +113,6 @@ public class ChauffeurAuthController implements BaseController {
 	@PostMapping("/chauffeurs/auth/logout")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void logout() {
-		logger.info("logout :: request received");
 		chauffeurService.logout();
 	}
 
