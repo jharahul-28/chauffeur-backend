@@ -82,6 +82,14 @@ public class AppSessionService implements BaseService<AppSessionEntity> {
 		}
 	}
 
+	public void doLogoutByUserId(Long userId) {
+		List<AppSessionEntity> sessions = findByUserId(userId);
+		if (CollectionUtils.isNotEmpty(sessions)) {
+			sessions.forEach(s -> s.setExpiry(DateUtils.getDateTime()));
+			appSessionRepository.saveAll(sessions);
+		}
+	}
+
 	private void saveSession(Long userId, String userType, String authToken) {
 		SessionBean sessionBean = new SessionBean();
 		sessionBean.setUserType(userType);

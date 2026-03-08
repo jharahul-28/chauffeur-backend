@@ -10,3 +10,7 @@
 /.fbExcludeFilterFile
 /.apt_generated/
 **/.DS_Store
+/.idea
+/src/main/resources/application*.yml
+*.iml
+.vscode/settings.json

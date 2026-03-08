@@ -1,7 +1,6 @@
 package com.velvet.rest.services.user.services;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -31,23 +30,23 @@ import com.velvet.rest.common.utils.ParamsUtils;
 import com.velvet.rest.common.websupport.base.BaseService;
 import com.velvet.rest.services.common.upload.UploadService;
 import com.velvet.rest.services.common.upload.UploadServiceUtil;
-import com.velvet.rest.services.user.beans.AppUserInfoRequest;
+import com.velvet.rest.services.user.beans.CustomerInfoRequest;
 import com.velvet.rest.services.user.constants.UserConstants.Gender;
-import com.velvet.rest.services.user.entity.AppUserEntity;
+import com.velvet.rest.services.user.entity.CustomerEntity;
 import com.velvet.rest.services.user.errors.AppErrors;
-import com.velvet.rest.services.user.repository.AppUserRepository;
+import com.velvet.rest.services.user.repository.CustomerRepository;
 import com.velvet.rest.services.user.utils.AuthUtils;
 
 /**
  * Created by mohit on 27.4.20.
  */
 @Service
-public class AppUserService implements UserService, BaseService<AppUserEntity> {
+public class CustomerService implements UserService, BaseService<CustomerEntity> {
 
-	private static final AppLogger logger = LoggingManager.getLogger(AppUserService.class);
+	private static final AppLogger logger = LoggingManager.getLogger(CustomerService.class);
 
 	@Autowired
-	private AppUserRepository appUserRepository;
+	private CustomerRepository customerRepository;
 
 	@Autowired
 	private OtpTokenService otpService;
@@ -61,57 +60,57 @@ public class AppUserService implements UserService, BaseService<AppUserEntity> {
 	@Autowired
 	private UploadService uploadService;
 
-	public AppUserEntity findById(Long id) {
-		AppUserEntity result = findRecordById(id);
+	public CustomerEntity findById(Long id) {
+		CustomerEntity result = findRecordById(id);
 		return result;
 	}
 
-	public AppUserEntity save(AppUserEntity entity) {
-		AppUserEntity result = appUserRepository.save(entity);
+	public CustomerEntity save(CustomerEntity entity) {
+		CustomerEntity result = customerRepository.save(entity);
 		return result;
 	}
 
-	public Iterable<AppUserEntity> saveAll(List<AppUserEntity> entities) {
-		Iterable<AppUserEntity> result = appUserRepository.saveAll(entities);
+	public Iterable<CustomerEntity> saveAll(List<CustomerEntity> entities) {
+		Iterable<CustomerEntity> result = customerRepository.saveAll(entities);
 		return result;
 	}
 
-	public List<AppUserEntity> findAll(Map<String, Object> filters) {
+	public List<CustomerEntity> findAll(Map<String, Object> filters) {
 		return findAllRecords(filters);
 	}
 
-	public PageAndSortResult<AppUserEntity> findAllByPage(Integer pageSize, Integer pageNo, Map<String, Object> filters, Map<String, SortDirection> sort) {
-		PageAndSortResult<AppUserEntity> appUserList = null;
+	public PageAndSortResult<CustomerEntity> findAllByPage(Integer pageSize, Integer pageNo, Map<String, Object> filters, Map<String, SortDirection> sort) {
+		PageAndSortResult<CustomerEntity> customerList = null;
 		if (CollectionUtils.isEmpty(filters)) {
 			filters = new HashMap<>();
 		}
 		try {
-			appUserList = findPagedRecords(filters, sort, pageSize, pageNo);
+			customerList = findPagedRecords(filters, sort, pageSize, pageNo);
 		} catch (Exception e) {
 			logger.error(e);
 			throw new ValidationException(ErrorBean.withError("FETCH_ERROR", e.getMessage(), null));
 		}
-		return appUserList;
+		return customerList;
 	}
 
 	@Override
-	public Class<AppUserEntity> getEntity() {
-		return AppUserEntity.class;
+	public Class<CustomerEntity> getEntity() {
+		return CustomerEntity.class;
 	}
 
 	@Override
 	public BaseCrudRepository<?, ?> getRepository() {
-		return appUserRepository;
+		return customerRepository;
 	}
 
-	public AppUserEntity findByPhone(String phone) {
-		AppUserEntity appUser = appUserRepository.findByPhone(phone);
-		return appUser;
+	public CustomerEntity findByPhone(String phone) {
+		CustomerEntity customer = customerRepository.findByPhone(phone);
+		return customer;
 	}
 
-	public AppUserEntity findByEmail(String email) {
-		AppUserEntity appUser = appUserRepository.findByEmail(email);
-		return appUser;
+	public CustomerEntity findByEmail(String email) {
+		CustomerEntity customer = customerRepository.findByEmail(email);
+		return customer;
 	}
 
 	public Boolean verifyOtp(Long userId, String phone, String otp) {
@@ -119,58 +118,58 @@ public class AppUserService implements UserService, BaseService<AppUserEntity> {
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	public AppUserEntity createAppUser(String phone, String userType) {
-		AppUserEntity appUser = (AppUserEntity) userService.registerAppUser(phone, userType, AppUserEntity.newInstance());
-		appUser.setAllowedSessions(ParamsUtils.getIntegerParam("APP_USER_ALLOWED_SESSIONS", 2));
-		return save(appUser);
+	public CustomerEntity createCustomer(String phone, String userType) {
+		CustomerEntity customer = (CustomerEntity) userService.registerUser(phone, userType, CustomerEntity.newInstance());
+		customer.setAllowedSessions(ParamsUtils.getIntegerParam("CUSTOMER_ALLOWED_SESSIONS", 2));
+		return save(customer);
 	}
 
-	public void generateReferralCode(AppUserEntity appUser) {
+	public void generateReferralCode(CustomerEntity customer) {
 		String referralCode = null;
 		do {
 			referralCode = AuthUtils.generateReferralCode();
-			AppUserEntity otherAppUser = appUserRepository.findByReferralCode(referralCode);
-			logger.info(String.format("AppUserService :: generateRefferrerCode method :: referralCode %s", referralCode));
-			if (Objects.isNull(otherAppUser) || !Objects.equals(referralCode, otherAppUser.getReferralCode())) {
+			CustomerEntity otherCustomer = customerRepository.findByReferralCode(referralCode);
+			logger.info(String.format("CustomerService :: generateRefferrerCode method :: referralCode %s", referralCode));
+			if (Objects.isNull(otherCustomer) || !Objects.equals(referralCode, otherCustomer.getReferralCode())) {
 				break;
 			}
 		} while (true);
 
-		appUser.setReferralCode(referralCode);
-		save(appUser);
+		customer.setReferralCode(referralCode);
+		save(customer);
 	}
 
 	@Override
-	public AppUserEntity getAuthEntity() {
+	public CustomerEntity getAuthEntity() {
 		final Long id = userService.getSessionUserId();
-		AppUserEntity entity = findById(id);
+		CustomerEntity entity = findById(id);
 		return entity;
 	}
 
-	public AppUserEntity updateVerifiedEmail(String email) {
-		AppUserEntity appUser = getAuthEntity();
-		appUser.setEmail(email);
-		appUser.setEmailVerified(true);
-		appUser = save(appUser);
-		return appUser;
+	public CustomerEntity updateVerifiedEmail(String email) {
+		CustomerEntity customer = getAuthEntity();
+		customer.setEmail(email);
+		customer.setEmailVerified(true);
+		customer = save(customer);
+		return customer;
 	}
 
-	public AppUserEntity updateVerifiedPhone(String phone, String countryCode) {
-		AppUserEntity appUser = getAuthEntity();
-		appUser.setCountryCode(countryCode);
-		appUser.setPhone(phone);
-		appUser.setPhoneVerified(true);
-		appUser = save(appUser);
-		return appUser;
+	public CustomerEntity updateVerifiedPhone(String phone, String countryCode) {
+		CustomerEntity customer = getAuthEntity();
+		customer.setCountryCode(countryCode);
+		customer.setPhone(phone);
+		customer.setPhoneVerified(true);
+		customer = save(customer);
+		return customer;
 	}
 
-	public AppUserEntity markPhoneVerified(AppUserEntity appUser) {
-		appUser.setPhoneVerified(true);
-		appUser = save(appUser);
-		return appUser;
+	public CustomerEntity markPhoneVerified(CustomerEntity customer) {
+		customer.setPhoneVerified(true);
+		customer = save(customer);
+		return customer;
 	}
 
-	public AppUserEntity updateInfo(AppUserEntity entity, String name, String email, Gender gender, Integer status) {
+	public CustomerEntity updateInfo(CustomerEntity entity, String name, String email, Gender gender, Integer status) {
 		boolean saving = false;
 		if (StringUtils.isNotEmpty(name)) {
 			entity.setName(name.trim());
@@ -197,11 +196,11 @@ public class AppUserService implements UserService, BaseService<AppUserEntity> {
 		return entity;
 	}
 
-	public AppUserEntity updateInfo(AppUserEntity entity, @Valid AppUserInfoRequest userInfoRequest, Integer status) {
+	public CustomerEntity updateInfo(CustomerEntity entity, @Valid CustomerInfoRequest userInfoRequest, Integer status) {
 		return updateInfo(entity, userInfoRequest.getName(), userInfoRequest.getEmail(), userInfoRequest.getGender(), status);
 	}
 
-	public AppUserEntity updateStatus(AppUserEntity entity, Integer status) {
+	public CustomerEntity updateStatus(CustomerEntity entity, Integer status) {
 		if (status != null) {
 			entity.setStatus(status);
 		}
@@ -217,7 +216,7 @@ public class AppUserService implements UserService, BaseService<AppUserEntity> {
 	public String uploadProfilePic(MultipartFile file) {
 		Assert.notNull(file, "File cannot be empty");
 
-		AppUserEntity entity = getAuthEntity();
+		CustomerEntity entity = getAuthEntity();
 		if (entity == null) {
 			throw new ValidationException(ErrorBean.withError(AppErrors.USER_NOT_FOUND, "User not found", "id"));
 		}
@@ -248,14 +247,14 @@ public class AppUserService implements UserService, BaseService<AppUserEntity> {
 		return String.format("%s/%s", context, response);
 	}
 
-	public List<AppUserEntity> findPendingWelcomeUsers() {
+	public List<CustomerEntity> findPendingWelcomeUsers() {
 		Integer pendingWelcomeUserTime = ParamsUtils.getIntegerParam("APP_PENDING_WELCOME_USER_TIME", 2);
 		Date cutoff = new Date(System.currentTimeMillis() - pendingWelcomeUserTime * 60 * 1000);
-		return appUserRepository.findPendingWelcomeUsers(cutoff);
+		return customerRepository.findPendingWelcomeUsers(cutoff);
 	}
 
-	public AppUserEntity markWelcomeMessageSent(Long userId) {
-		AppUserEntity entity = findById(userId);
+	public CustomerEntity markWelcomeMessageSent(Long userId) {
+		CustomerEntity entity = findById(userId);
 		if (entity != null) {
 			entity.setWelcomeMessageSent(true);
 			save(entity);
@@ -263,13 +262,13 @@ public class AppUserService implements UserService, BaseService<AppUserEntity> {
 		return entity;
 	}
 
-	public AppUserEntity validateReferralCode(AppUserEntity appUser, String referralCode) {
-		Long userId = appUser.getId();
-		AppUserEntity response = null;
-		AppUserEntity referredByEntity = appUserRepository.findByReferralCode(referralCode);
+	public CustomerEntity validateReferralCode(CustomerEntity customer, String referralCode) {
+		Long userId = customer.getId();
+		CustomerEntity response = null;
+		CustomerEntity referredByEntity = customerRepository.findByReferralCode(referralCode);
 		if (Objects.nonNull(referredByEntity) && !Objects.equals(userId, referredByEntity.getId())) {
-			appUser.setReferredBy(referralCode);
-			response = appUserRepository.save(appUser);
+			customer.setReferredBy(referralCode);
+			response = customerRepository.save(customer);
 		} else {
 			throw new ValidationException(
 					ErrorBean.withError(AppErrors.INCORRECT_REFERRAL_CODE, "The referral code is not valid. Please enter again.", "referralCode"));
@@ -286,8 +285,8 @@ public class AppUserService implements UserService, BaseService<AppUserEntity> {
 	 * @return The soft deleted user entity
 	 */
 	@Transactional(propagation = Propagation.REQUIRED)
-	public AppUserEntity softDelete(Long userId) {
-		AppUserEntity entity = findById(userId);
+	public CustomerEntity softDelete(Long userId) {
+		CustomerEntity entity = findById(userId);
 		if (entity == null) {
 			throw new ValidationException(ErrorBean.withError("USER_NOT_FOUND", "User not found", null));
 		}
@@ -316,7 +315,7 @@ public class AppUserService implements UserService, BaseService<AppUserEntity> {
 	 * @return The soft deleted user entity
 	 */
 	@Transactional(propagation = Propagation.REQUIRED)
-	public AppUserEntity softDeleteSelf() {
+	public CustomerEntity softDeleteSelf() {
 		final Long userId = userService.getSessionUserId();
 		return softDelete(userId);
 	}

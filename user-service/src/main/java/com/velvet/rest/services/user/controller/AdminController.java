@@ -57,7 +57,7 @@ public class AdminController implements BaseController {
 	 *
 	 */
 	@ApiOperation(value = "List all Admin in application admin.", nickname = "findAdminList")
-	@GetMapping("/admins")
+	@GetMapping("/users/admins")
 	public ResponseEntity<List<AdminUserBean>> findAll(HttpServletRequest request) {
 		final List<AdminUserEntity> results = adminService.findAll(getSearchParams(request, AdminUserEntity.class));
 		if (results == null || results.isEmpty()) {
@@ -71,7 +71,7 @@ public class AdminController implements BaseController {
 	 *
 	 */
 	@ApiOperation(value = "Get Admin Profile.", nickname = "findAdminProfile")
-	@GetMapping("/admins/profile")
+	@GetMapping("/users/admins/profile")
 	public ResponseEntity<AdminUserBean> getAdminProfile() {
 		AdminUserEntity entity = adminService.getAuthEntity();
 		if (entity == null) {
@@ -85,7 +85,7 @@ public class AdminController implements BaseController {
 	 *
 	 */
 	@ApiOperation(value = "Get one Admin with provided id.", nickname = "findOneAdminById")
-	@GetMapping("/admins/{id}")
+	@GetMapping("/users/admins/{id}")
 	public ResponseEntity<AdminUserBean> findOne(@PathVariable Long id) {
 		AdminUserEntity entity = adminService.findById(id);
 		if (entity == null) {
@@ -100,7 +100,7 @@ public class AdminController implements BaseController {
 	 * </p>
 	 */
 	@ApiOperation(value = "register new Admin User", nickname = "registerAdminUser")
-	@PostMapping("/admins")
+	@PostMapping("/users/admins")
 	@ResponseStatus(HttpStatus.CREATED)
 	public void save(@Valid @RequestBody AdminUserBean admin, @ApiIgnore Errors errors) {
 		checkError(errors);
@@ -112,7 +112,7 @@ public class AdminController implements BaseController {
 	 *
 	 */
 	@ApiOperation(value = "Update AdminUser's Info.", nickname = "updateAdminUserInfo")
-	@PutMapping("/admins/{id}")
+	@PutMapping("/users/admins/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void updateProfileInfo(@PathVariable Long id, @Valid @RequestBody AdminInfoRequest bean, @ApiIgnore Errors errors) {
 		checkError(errors);
@@ -124,7 +124,7 @@ public class AdminController implements BaseController {
 	 *
 	 */
 	@ApiOperation(value = "Update Admin's Groups.", nickname = "updateAuthAdminUserGroups")
-	@PutMapping("/admins/{id}/groups")
+	@PutMapping("/users/admins/{id}/groups")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void updateProfileGroups(@PathVariable Long id, @Valid @RequestBody UserGroupRequest request, @ApiIgnore Errors errors) {
 		checkError(errors);
