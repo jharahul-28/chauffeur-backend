@@ -35,9 +35,9 @@ import com.velvet.rest.common.exceptions.ValidationException;
 import com.velvet.rest.common.utils.SessionUtils.ApplicationId;
 import com.velvet.rest.common.websupport.base.BaseController;
 import com.velvet.rest.services.common.mapper.BaseMapper;
-import com.velvet.rest.services.user.beans.AppUserBean;
-import com.velvet.rest.services.user.beans.AppUserInfoRequest;
-import com.velvet.rest.services.user.beans.AppUserResponse;
+import com.velvet.rest.services.user.beans.CustomerBean;
+import com.velvet.rest.services.user.beans.CustomerInfoRequest;
+import com.velvet.rest.services.user.beans.CustomerResponse;
 import com.velvet.rest.services.user.beans.CreateWAUserRequest;
 import com.velvet.rest.services.user.beans.GenerateOtpRequest;
 import com.velvet.rest.services.user.beans.InitBean;
@@ -45,10 +45,10 @@ import com.velvet.rest.services.user.beans.LoginOtpRequest;
 import com.velvet.rest.services.user.beans.ProfilePicResponse;
 import com.velvet.rest.services.user.beans.UserAddressBean;
 import com.velvet.rest.services.user.beans.UserAddressRequest;
-import com.velvet.rest.services.user.entity.AppUserEntity;
+import com.velvet.rest.services.user.entity.CustomerEntity;
 import com.velvet.rest.services.user.entity.UserAddressEntity;
 import com.velvet.rest.services.user.errors.AppErrors;
-import com.velvet.rest.services.user.services.AppUserService;
+import com.velvet.rest.services.user.services.CustomerService;
 import com.velvet.rest.services.user.services.AuthUserService;
 import com.velvet.rest.services.user.services.OtpTokenService;
 import com.velvet.rest.services.user.services.UserAddressService;
@@ -64,21 +64,21 @@ import io.swagger.annotations.ApiOperation;
 import springfox.documentation.annotations.ApiIgnore;
 
 /**
- * The Class AppUserController.
+ * The Class CustomerController.
  *
  * @author Mohit
  * @version $Id: $Id
  */
 @RestController
-@Api(tags = "AppUser Services", description = "Manage AppUser related services.")
-public class AppUserController implements BaseController {
+@Api(tags = "Customer Services", description = "Manage Customer related services.")
+public class CustomerController implements BaseController {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppUserController.class);
+	private static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
 
 	private static final String EMAIL_REGEX = "\\S+@\\S+\\.\\S+";
 
 	@Autowired
-	private AppUserService appUserService;
+	private CustomerService customerService;
 
 	@Autowired
 	private UserAddressService userAddressService;
@@ -93,21 +93,21 @@ public class AppUserController implements BaseController {
 	private WelcomeMessageService welcomeMessageService;
 
 	@Autowired
-	private BaseMapper<?, ?> appUserMapper;
+	private BaseMapper<?, ?> customerMapper;
 
 	/**
 	 * Get users by IDs.
 	 *
 	 */
 	@ApiOperation(value = "Get users by comma-separated IDs", nickname = "getUsersByIds")
-	@GetMapping("/users")
-	public ResponseEntity<List<AppUserResponse>> findAllByIds(@RequestParam String ids) {
+	@GetMapping("/users/customers")
+	public ResponseEntity<List<CustomerResponse>> findAllByIds(@RequestParam String ids) {
 		logger.info("findAllByIds :: ids: {}", ids);
 		try {
 			List<Long> userIds = Arrays.stream(ids.split(",")).map(String::trim).map(Long::valueOf).collect(Collectors.toList());
 
-			List<AppUserEntity> users = appUserService.findRecordByIds(userIds);
-			List<AppUserResponse> response = getMapper().mapAsList(users, AppUserResponse.class);
+			List<CustomerEntity> users = customerService.findRecordByIds(userIds);
+			List<CustomerResponse> response = getMapper().mapAsList(users, CustomerResponse.class);
 			return ResponseEntity.ok(response);
 		} catch (NumberFormatException e) {
 			logger.error("Invalid user IDs format: " + ids, e);
@@ -119,9 +119,9 @@ public class AppUserController implements BaseController {
 	 * Find all paginated.
 	 *
 	 */
-	@ApiOperation(value = "List all AppUsers Paginated in application.", nickname = "findAppUserListPaginated")
-	@GetMapping("/users/paginated")
-	public PageAndSortResult<AppUserBean> findAllPaginated(@RequestParam(defaultValue = "1") Integer pageNo,
+	@ApiOperation(value = "List all Customers Paginated in application.", nickname = "findCustomerListPaginated")
+	@GetMapping("/users/customers/paginated")
+	public PageAndSortResult<CustomerBean> findAllPaginated(@RequestParam(defaultValue = "1") Integer pageNo,
 			@RequestParam(defaultValue = "20") Integer pageSize, @RequestParam(required = false) String sortBy,
 			@RequestParam(required = false) SortDirection sortDirection, HttpServletRequest request) {
 		logger.info("findAllPaginated :: pageNo: {}, pageSize: {}, sortBy: {}", pageNo, pageSize, sortBy);
@@ -129,10 +129,10 @@ public class AppUserController implements BaseController {
 		if (sortBy != null) {
 			sort = buildSortMap(sortBy, sortDirection);
 		}
-		final PageAndSortResult<AppUserEntity> results = appUserService.findAllByPage(pageSize, pageNo, getSearchParams(request, AppUserEntity.class), sort);
-		PageAndSortResult<AppUserBean> response = new PageAndSortResult<AppUserBean>();
+		final PageAndSortResult<CustomerEntity> results = customerService.findAllByPage(pageSize, pageNo, getSearchParams(request, CustomerEntity.class), sort);
+		PageAndSortResult<CustomerBean> response = new PageAndSortResult<CustomerBean>();
 		if (results != null && results.getData() != null) {
-			response = prepareResponsePageData(results, AppUserBean.class);
+			response = prepareResponsePageData(results, CustomerBean.class);
 		}
 		return response;
 	}
@@ -141,16 +141,16 @@ public class AppUserController implements BaseController {
 	 * Find one.
 	 *
 	 */
-	@ApiOperation(value = "Get one AppUser with provided id.", nickname = "findOneAppUserById")
-	@GetMapping("/users/{id}")
-	public ResponseEntity<AppUserBean> findOne(@PathVariable Long id) {
+	@ApiOperation(value = "Get one Customer with provided id.", nickname = "findOneCustomerById")
+	@GetMapping("/users/customers/{id}")
+	public ResponseEntity<CustomerBean> findOne(@PathVariable Long id) {
 		logger.info("findOne :: id: {}", id);
-		AppUserEntity entity = appUserService.findById(id);
+		CustomerEntity entity = customerService.findById(id);
 		if (entity == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
-		AppUserBean userResponse = getMapper().mapSrcToDest(entity, AppUserBean.newInstance());
-		addAddressInAppUserBean(userResponse);
+		CustomerBean userResponse = getMapper().mapSrcToDest(entity, CustomerBean.newInstance());
+		addAddressInCustomerBean(userResponse);
 		return ResponseEntity.ok(userResponse);
 	}
 
@@ -158,16 +158,16 @@ public class AppUserController implements BaseController {
 	 * Find one.
 	 *
 	 */
-	@ApiOperation(value = "Get one AppUser with provided id.", nickname = "findOneAppUserByPhone")
-	@GetMapping("/users/phone/{phone}")
-	public ResponseEntity<AppUserBean> findByPhone(@PathVariable String phone) {
+	@ApiOperation(value = "Get one Customer with provided id.", nickname = "findOneCustomerByPhone")
+	@GetMapping("/users/customers/phone/{phone}")
+	public ResponseEntity<CustomerBean> findByPhone(@PathVariable String phone) {
 		logger.info("findByPhone : {}", phone);
-		AppUserEntity entity = appUserService.findByPhone(phone);
+		CustomerEntity entity = customerService.findByPhone(phone);
 		if (entity == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
-		AppUserBean userResponse = getMapper().mapSrcToDest(entity, AppUserBean.newInstance());
-		// addAddressInAppUserBean(userResponse);
+		CustomerBean userResponse = getMapper().mapSrcToDest(entity, CustomerBean.newInstance());
+		// addAddressInCustomerBean(userResponse);
 		return ResponseEntity.ok(userResponse);
 	}
 
@@ -176,10 +176,10 @@ public class AppUserController implements BaseController {
 	 *
 	 */
 	@ApiOperation(value = "Get user name with provided id.", nickname = "getUserNameById")
-	@GetMapping("/users/{id}/name")
+	@GetMapping("/users/customers/{id}/name")
 	public ResponseEntity<String> getUserName(@PathVariable Long id) {
 		logger.info("getUserName :: id: {}", id);
-		AppUserEntity entity = appUserService.findById(id);
+		CustomerEntity entity = customerService.findById(id);
 		if (entity == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
@@ -191,13 +191,13 @@ public class AppUserController implements BaseController {
 	 * save.
 	 * </p>
 	 */
-	@ApiOperation(value = "create new AppUser", nickname = "createAppUser")
-	@PostMapping("/users")
+	@ApiOperation(value = "create new Customer", nickname = "createCustomer")
+	@PostMapping("/users/customers")
 	@ResponseStatus(HttpStatus.CREATED)
-	public Long save(@Valid @RequestBody AppUserBean appUser, @ApiIgnore Errors errors) {
-		logger.info("save :: request: {}", appUser);
+	public Long save(@Valid @RequestBody CustomerBean customer, @ApiIgnore Errors errors) {
+		logger.info("save :: request: {}", customer);
 		checkError(errors);
-		final AppUserEntity entity = appUserService.save(getMapper().mapSrcToDest(appUser, AppUserEntity.newInstance()));
+		final CustomerEntity entity = customerService.save(getMapper().mapSrcToDest(customer, CustomerEntity.newInstance()));
 		return entity.getId();
 	}
 
@@ -207,27 +207,27 @@ public class AppUserController implements BaseController {
 	 * </p>
 	 *
 	 */
-	@ApiOperation(value = "update existing app user with provided id", nickname = "updateAppUser")
-	@PutMapping("/users/{id}")
+	@ApiOperation(value = "update existing app user with provided id", nickname = "updateCustomer")
+	@PutMapping("/users/customers/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void update(@PathVariable Long id, @Valid @RequestBody AppUserBean appUserBean, @ApiIgnore Errors errors) {
-		logger.info("update :: id: {}, request: {}", id, appUserBean);
-		appUserBean.setId(id);
+	public void update(@PathVariable Long id, @Valid @RequestBody CustomerBean customerBean, @ApiIgnore Errors errors) {
+		logger.info("update :: id: {}, request: {}", id, customerBean);
+		customerBean.setId(id);
 		checkError(errors);
-		final AppUserEntity entity = appUserService.findById(id);
-		appUserService.save(getMapper().mapSrcToDest(appUserBean, entity));
+		final CustomerEntity entity = customerService.findById(id);
+		customerService.save(getMapper().mapSrcToDest(customerBean, entity));
 	}
 
 	/**
 	 * Init Call
 	 *
 	 */
-	@ApiOperation(value = "AppUser Init Call", nickname = "appUserInitCall")
-	@GetMapping("/users/init")
+	@ApiOperation(value = "Customer Init Call", nickname = "customerInitCall")
+	@GetMapping("/users/customers/init")
 	public ResponseEntity<InitBean> init() {
 		logger.info("init :: request received");
-		String version = appUserService.appVersion(ApplicationId.USER_APP.toString());
-		Integer hardUpdate = appUserService.hardUpdate(ApplicationId.USER_APP.toString());
+		String version = customerService.appVersion(ApplicationId.CUSTOMER_APP.toString());
+		Integer hardUpdate = customerService.hardUpdate(ApplicationId.CUSTOMER_APP.toString());
 		InitBean response = InitBean.newInstance();
 		response.setVersion(version);
 		response.setHardUpdate(hardUpdate);
@@ -235,23 +235,23 @@ public class AppUserController implements BaseController {
 	}
 
 	/**
-	 * Find AppUser's own user details.
+	 * Find Customer's own user details.
 	 *
 	 */
-	@ApiOperation(value = "Get AppUser's own user details from session.", nickname = "findAuthAppUserProfile")
-	@GetMapping("/users/profile")
-	public ResponseEntity<AppUserBean> getMyProfile() {
+	@ApiOperation(value = "Get Customer's own user details from session.", nickname = "findAuthCustomerProfile")
+	@GetMapping("/users/customers/profile")
+	public ResponseEntity<CustomerBean> getMyProfile() {
 		logger.info("getMyProfile :: request received");
-		AppUserEntity entity = appUserService.getAuthEntity();
+		CustomerEntity entity = customerService.getAuthEntity();
 		if (entity == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
-		AppUserBean userResponse = getMapper().mapSrcToDest(entity, AppUserBean.newInstance());
-		addAddressInAppUserBean(userResponse);
+		CustomerBean userResponse = getMapper().mapSrcToDest(entity, CustomerBean.newInstance());
+		addAddressInCustomerBean(userResponse);
 		return ResponseEntity.ok(userResponse);
 	}
 
-	private void addAddressInAppUserBean(AppUserBean userResponse) {
+	private void addAddressInCustomerBean(CustomerBean userResponse) {
 		UserAddressEntity address = userAddressService.findByUserId(userResponse.getId());
 		if (address != null) {
 			UserAddressBean addressBean = getMapper().mapSrcToDest(address, UserAddressBean.newInstance());
@@ -260,15 +260,15 @@ public class AppUserController implements BaseController {
 	}
 
 	/**
-	 * Update AppUser's Address.
+	 * Update Customer's Address.
 	 *
 	 */
-	@ApiOperation(value = "Create AppUser's Address.", nickname = "createAuthAppUserAddress")
-	@PostMapping("/users/address")
+	@ApiOperation(value = "Create Customer's Address.", nickname = "createAuthCustomerAddress")
+	@PostMapping("/users/customers/address")
 	public ResponseEntity<UserAddressBean> createProfileAddress(@Valid @RequestBody UserAddressRequest addressRequest) {
 		logger.info(String.format("createProfileAddress :: %s", addressRequest));
 
-		AppUserEntity entity = appUserService.getAuthEntity();
+		CustomerEntity entity = customerService.getAuthEntity();
 		if (entity == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
@@ -277,20 +277,20 @@ public class AppUserController implements BaseController {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
 		entity.setOrgId(userAddressEntity.getOrgId());
-		appUserService.save(entity);
+		customerService.save(entity);
 		return ResponseEntity.ok(getMapper().mapSrcToDest(userAddressEntity, UserAddressBean.newInstance()));
 	}
 
 	/**
-	 * Update AppUser's Address.
+	 * Update Customer's Address.
 	 *
 	 */
-	@ApiOperation(value = "Create AppUser's Onboarding Address.", nickname = "createAuthAppUserAddress")
-	@PostMapping("/users/address/onboarding")
+	@ApiOperation(value = "Create Customer's Onboarding Address.", nickname = "createAuthCustomerAddress")
+	@PostMapping("/users/customers/address/onboarding")
 	public ResponseEntity<UserAddressBean> createOnboardingProfileAddress(@Valid @RequestBody UserAddressRequest addressRequest) {
 		logger.info(String.format("createProfileAddress :: %s", addressRequest));
 
-		AppUserEntity entity = appUserService.getAuthEntity();
+		CustomerEntity entity = customerService.getAuthEntity();
 		if (entity == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
@@ -301,11 +301,11 @@ public class AppUserController implements BaseController {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
 		entity.setOrgId(userAddressEntity.getOrgId());
-		appUserService.updateStatus(entity, status);
+		customerService.updateStatus(entity, status);
 		return ResponseEntity.ok(getMapper().mapSrcToDest(userAddressEntity, UserAddressBean.newInstance()));
 	}
 
-	private void validateOnboardingStatus(AppUserEntity entity, Integer status) {
+	private void validateOnboardingStatus(CustomerEntity entity, Integer status) {
 		if (entity.getStatus() >= status) {
 			throw new ValidationException(
 					ErrorBean.withError(AppErrors.ONBOARDING_STEP_COMPLETED, "This onboarding step has already been completed.", "status"));
@@ -313,39 +313,39 @@ public class AppUserController implements BaseController {
 	}
 
 	/**
-	 * Update AppUser's Profile.
+	 * Update Customer's Profile.
 	 *
 	 */
-	@ApiOperation(value = "Update AppUser's Onboarding Profile.", nickname = "updateAuthAppUserProfile")
-	@PostMapping("/users/profile/onboarding")
-	public ResponseEntity<AppUserBean> updateOnboardingProfileInfo(@Valid @RequestBody AppUserInfoRequest request) {
+	@ApiOperation(value = "Update Customer's Onboarding Profile.", nickname = "updateAuthCustomerProfile")
+	@PostMapping("/users/customers/profile/onboarding")
+	public ResponseEntity<CustomerBean> updateOnboardingProfileInfo(@Valid @RequestBody CustomerInfoRequest request) {
 		logger.info(String.format("createProfileAddress :: %s", request));
-		AppUserEntity entity = appUserService.getAuthEntity();
+		CustomerEntity entity = customerService.getAuthEntity();
 		if (entity == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
 		Integer status = 2;
 		validateOnboardingStatus(entity, status);
-		entity = appUserService.updateInfo(entity, request, status);
-		AppUserBean userResponse = getMapper().mapSrcToDest(entity, AppUserBean.newInstance());
-		addAddressInAppUserBean(userResponse);
+		entity = customerService.updateInfo(entity, request, status);
+		CustomerBean userResponse = getMapper().mapSrcToDest(entity, CustomerBean.newInstance());
+		addAddressInCustomerBean(userResponse);
 		return ResponseEntity.ok(userResponse);
 	}
 
 	/**
-	 * Update AppUser's Profile.
+	 * Update Customer's Profile.
 	 *
 	 */
-	@ApiOperation(value = "Update AppUser's Profile.", nickname = "updateAppUserProfile")
-	@PostMapping("/users/profile")
-	public ResponseEntity<AppUserBean> updateProfileInfo(@Valid @RequestBody AppUserInfoRequest request) {
+	@ApiOperation(value = "Update Customer's Profile.", nickname = "updateCustomerProfile")
+	@PostMapping("/users/customers/profile")
+	public ResponseEntity<CustomerBean> updateProfileInfo(@Valid @RequestBody CustomerInfoRequest request) {
 		logger.info("updateProfileInfo :: request: {}", request);
-		AppUserEntity entity = appUserService.getAuthEntity();
+		CustomerEntity entity = customerService.getAuthEntity();
 		if (entity == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
-		entity = appUserService.updateInfo(entity, request, null);
-		return ResponseEntity.ok(getMapper().mapSrcToDest(entity, AppUserBean.newInstance()));
+		entity = customerService.updateInfo(entity, request, null);
+		return ResponseEntity.ok(getMapper().mapSrcToDest(entity, CustomerBean.newInstance()));
 	}
 
 	/**
@@ -357,10 +357,10 @@ public class AppUserController implements BaseController {
 	 * @return UserKycEntity
 	 */
 	@ApiOperation(value = "upload single document on S3", nickname = "uploadProfilePic")
-	@PostMapping(path = "/users/profile/pic/upload")
+	@PostMapping(path = "/users/customers/profile/pic/upload")
 	public ResponseEntity<ProfilePicResponse> uploadProfilePic(@RequestParam MultipartFile file) {
 		logger.info("uploadProfilePic :: filename: {}", file.getOriginalFilename());
-		String profilePic = appUserService.uploadProfilePic(file);
+		String profilePic = customerService.uploadProfilePic(file);
 		ProfilePicResponse response = new ProfilePicResponse();
 		response.setProfilePic(profilePic);
 		return new ResponseEntity<>(response, HttpStatus.OK);
@@ -376,14 +376,14 @@ public class AppUserController implements BaseController {
 	 * @throws TemplateNotFoundException
 	 */
 	@ApiOperation(value = "Send an email verification mail", nickname = "sendEmailVerification")
-	@PostMapping("/users/email/otp/generate")
+	@PostMapping("/users/customers/email/otp/generate")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void sendEmailOtpForVerification(@Valid @RequestBody GenerateOtpRequest otpRequest, @ApiIgnore Errors errors)
 			throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, TemplateException, IOException {
 		logger.info("sendEmailOtpForVerification :: request: {}", otpRequest);
 		if (UserServiceUtil.patternMatches(otpRequest.getReferenceId(), EMAIL_REGEX)) {
-			AppUserEntity appUser = appUserService.getAuthEntity();
-			String otp = otpService.generateEmailOtp(otpRequest.getReferenceId(), appUser.getId());
+			CustomerEntity customer = customerService.getAuthEntity();
+			String otp = otpService.generateEmailOtp(otpRequest.getReferenceId(), customer.getId());
 			// send notifiaction.
 		} else {
 			logger.error("The input email id is incorrect- {}", otpRequest.getReferenceId());
@@ -392,13 +392,13 @@ public class AppUserController implements BaseController {
 	}
 
 	@ApiOperation(value = "validate email verification code", nickname = "validateEmailOtp")
-	@PostMapping("/users/email/otp/verify")
-	public ResponseEntity<AppUserBean> validateEmailOtp(@Valid @RequestBody LoginOtpRequest otpRequest, @ApiIgnore Errors errors) {
+	@PostMapping("/users/customers/email/otp/verify")
+	public ResponseEntity<CustomerBean> validateEmailOtp(@Valid @RequestBody LoginOtpRequest otpRequest, @ApiIgnore Errors errors) {
 		logger.info("validateEmailOtp :: request: {}", otpRequest);
-		AppUserEntity appUser = appUserService.getAuthEntity();
-		otpService.verifyEmailOtp(appUser.getId(), otpRequest.getPhone(), otpRequest.getOtp());
-		appUser = appUserService.updateVerifiedEmail(otpRequest.getPhone());
-		return new ResponseEntity<>(getMapper().mapSrcToDest(appUser, AppUserBean.newInstance()), HttpStatus.OK);
+		CustomerEntity customer = customerService.getAuthEntity();
+		otpService.verifyEmailOtp(customer.getId(), otpRequest.getPhone(), otpRequest.getOtp());
+		customer = customerService.updateVerifiedEmail(otpRequest.getPhone());
+		return new ResponseEntity<>(getMapper().mapSrcToDest(customer, CustomerBean.newInstance()), HttpStatus.OK);
 	}
 
 	/**
@@ -411,38 +411,38 @@ public class AppUserController implements BaseController {
 	 * @throws TemplateNotFoundException
 	 */
 	@ApiOperation(value = "Send an email verification mail", nickname = "sendEmailVerification")
-	@PostMapping("/users/phone/otp/generate")
+	@PostMapping("/users/customers/phone/otp/generate")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void sendPhoneOtpForVerification(@Valid @RequestBody GenerateOtpRequest otpRequest, @ApiIgnore Errors errors)
 			throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, TemplateException, IOException {
 		logger.info("sendPhoneOtpForVerification :: request: {}", otpRequest);
-		AppUserEntity appUser = appUserService.getAuthEntity();
-		otpService.generatePhoneOtp(appUser.getId(), otpRequest.getReferenceId(), otpRequest.getVerificationId());
+		CustomerEntity customer = customerService.getAuthEntity();
+		otpService.generatePhoneOtp(customer.getId(), otpRequest.getReferenceId(), otpRequest.getVerificationId());
 	}
 
 	@ApiOperation(value = "validate email verification code", nickname = "validateEmailOtp")
-	@PostMapping("/users/phone/otp/verify")
-	public ResponseEntity<AppUserBean> validatePhoneOtp(@Valid @RequestBody LoginOtpRequest otpRequest, @ApiIgnore Errors errors) {
+	@PostMapping("/users/customers/phone/otp/verify")
+	public ResponseEntity<CustomerBean> validatePhoneOtp(@Valid @RequestBody LoginOtpRequest otpRequest, @ApiIgnore Errors errors) {
 		logger.info("validatePhoneOtp :: request: {}", otpRequest);
-		AppUserEntity appUser = appUserService.getAuthEntity();
-		otpService.verifyPhoneOtp(appUser.getId(), String.format("%s%s", otpRequest.getCountryCode(), otpRequest.getPhone()), otpRequest.getOtp());
-		appUser = appUserService.updateVerifiedPhone(otpRequest.getPhone(), otpRequest.getCountryCode());
-		return new ResponseEntity<>(getMapper().mapSrcToDest(appUser, AppUserBean.newInstance()), HttpStatus.OK);
+		CustomerEntity customer = customerService.getAuthEntity();
+		otpService.verifyPhoneOtp(customer.getId(), String.format("%s%s", otpRequest.getCountryCode(), otpRequest.getPhone()), otpRequest.getOtp());
+		customer = customerService.updateVerifiedPhone(otpRequest.getPhone(), otpRequest.getCountryCode());
+		return new ResponseEntity<>(getMapper().mapSrcToDest(customer, CustomerBean.newInstance()), HttpStatus.OK);
 	}
 
 	/**
 	 * This method will validate referral code for the app user and add referral
 	 * bonus in account.
 	 * 
-	 * @return AppUserEntity
+	 * @return CustomerEntity
 	 */
 	@ApiOperation(value = "validate Referral Code", nickname = "validateReferralCode")
-	@PostMapping(path = "/users/referralCode/validate")
-	public ResponseEntity<AppUserBean> validateReferralCode(@RequestParam String referralCode) {
+	@PostMapping(path = "/users/customers/referralCode/validate")
+	public ResponseEntity<CustomerBean> validateReferralCode(@RequestParam String referralCode) {
 		logger.info("validateReferralCode :: referralCode: {}", referralCode);
-		AppUserEntity appUser = appUserService.getAuthEntity();
-		AppUserEntity response = appUserService.validateReferralCode(appUser, referralCode);
-		return new ResponseEntity<>(getMapper().mapSrcToDest(response, AppUserBean.newInstance()), HttpStatus.OK);
+		CustomerEntity customer = customerService.getAuthEntity();
+		CustomerEntity response = customerService.validateReferralCode(customer, referralCode);
+		return new ResponseEntity<>(getMapper().mapSrcToDest(response, CustomerBean.newInstance()), HttpStatus.OK);
 	}
 
 	/**
@@ -450,17 +450,17 @@ public class AppUserController implements BaseController {
 	 * 
 	 * @return void
 	 */
-	@ApiOperation(value = "block the user", nickname = "blockAppUser")
-	@PostMapping(path = "/users/{id}/block")
+	@ApiOperation(value = "block the user", nickname = "blockCustomer")
+	@PostMapping(path = "/users/customers/{id}/block")
 	@ResponseStatus(HttpStatus.OK)
-	public void blockAppUser(@PathVariable Long id) {
-		logger.info("blockAppUser :: id: {}", id);
-		AppUserEntity entity = appUserService.findById(id);
+	public void blockCustomer(@PathVariable Long id) {
+		logger.info("blockCustomer :: id: {}", id);
+		CustomerEntity entity = customerService.findById(id);
 		if (entity == null) {
 			throw new ValidationException(ErrorBean.withError(AppErrors.USER_NOT_FOUND, "User not found with the provided Id", "userId"));
 		}
 		entity.setBlocked(true);
-		appUserService.save(entity);
+		customerService.save(entity);
 	}
 
 	/**
@@ -468,17 +468,17 @@ public class AppUserController implements BaseController {
 	 * 
 	 * @return void
 	 */
-	@ApiOperation(value = "unblock the user", nickname = "unblockAppUser")
-	@PostMapping(path = "/users/{id}/unblock")
+	@ApiOperation(value = "unblock the user", nickname = "unblockCustomer")
+	@PostMapping(path = "/users/customers/{id}/unblock")
 	@ResponseStatus(HttpStatus.OK)
-	public void unblockAppUser(@PathVariable Long id) {
-		logger.info("unblockAppUser :: id: {}", id);
-		AppUserEntity entity = appUserService.findById(id);
+	public void unblockCustomer(@PathVariable Long id) {
+		logger.info("unblockCustomer :: id: {}", id);
+		CustomerEntity entity = customerService.findById(id);
 		if (entity == null) {
 			throw new ValidationException(ErrorBean.withError(AppErrors.USER_NOT_FOUND, "User not found with the provided Id", "userId"));
 		}
 		entity.setBlocked(false);
-		appUserService.save(entity);
+		customerService.save(entity);
 	}
 
 	/**
@@ -490,11 +490,11 @@ public class AppUserController implements BaseController {
 	 * @return success message
 	 */
 	@ApiOperation(value = "Soft delete user by ID", nickname = "softDeleteUser")
-	@DeleteMapping(path = "/users/{id}")
+	@DeleteMapping(path = "/users/customers/{id}")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<String> softDeleteUser(@PathVariable Long id) {
 		logger.info("softDeleteUser :: id: {}", id);
-		appUserService.softDelete(id);
+		customerService.softDelete(id);
 		return ResponseEntity.ok("User has been successfully deleted.");
 	}
 
@@ -505,30 +505,26 @@ public class AppUserController implements BaseController {
 	 * @return void
 	 */
 	@ApiOperation(value = "hard delete user by email", nickname = "hardDeleteUserByEmail")
-	@PostMapping(path = "/users/delete")
+	@PostMapping(path = "/users/customers/delete")
 	@ResponseStatus(HttpStatus.OK)
 	public void deleteUserSelf() {
 		logger.info("deleteUserSelf :: request received");
 		final Long userId = authUserService.getSessionUserId();
-		appUserService.softDelete(userId);
+		customerService.softDelete(userId);
 	}
 
 	/**
 	 * Internal endpoint: Find or create user by phone, and set orgId if provided.
 	 */
 	@ApiOperation(value = "Find or create user by phone (internal) from whatsapp", nickname = "createUserFromWhatsapp")
-	@PostMapping("/users/internal/whatsapp")
-	public ResponseEntity<AppUserResponse> createUserFromWhatsapp(@RequestBody CreateWAUserRequest request) {
-		logger.info("ensureUser :: phone: {}, orgId: {}", request.getPhone(), request.getOrgId());
-		AppUserEntity appUser = appUserService.findByPhone(request.getPhone());
-		if (appUser == null) {
-			appUser = appUserService.createAppUser(request.getPhone(), CommonConstants.UserTypes.APP_USER);
+	@PostMapping("/users/customers/internal/whatsapp")
+	public ResponseEntity<CustomerResponse> createUserFromWhatsapp(@RequestBody CreateWAUserRequest request) {
+		logger.info("ensureUser :: phone: {}", request.getPhone());
+		CustomerEntity customer = customerService.findByPhone(request.getPhone());
+		if (customer == null) {
+			customer = customerService.createCustomer(request.getPhone(), CommonConstants.UserTypes.CUSTOMER);
 		}
-		if (request.getOrgId() != null && appUser.getOrgId() == null) {
-			appUser.setOrgId(request.getOrgId());
-			appUser = appUserService.save(appUser);
-		}
-		AppUserResponse response = getMapper().mapSrcToDest(appUser, AppUserResponse.newInstance());
+		CustomerResponse response = getMapper().mapSrcToDest(customer, CustomerResponse.newInstance());
 		return ResponseEntity.ok(response);
 	}
 
@@ -537,7 +533,7 @@ public class AppUserController implements BaseController {
 	 * message.
 	 */
 	@ApiOperation(value = "Get pending welcome users (internal)", nickname = "getPendingWelcomeUsers")
-	@PostMapping("/users/welcome-message")
+	@PostMapping("/users/customers/welcome-message")
 	public void getPendingWelcomeUsers() {
 		logger.info("getPendingWelcomeUsers :: request received");
 		CompletableFuture.runAsync(() -> {
@@ -547,6 +543,6 @@ public class AppUserController implements BaseController {
 
 	@Override
 	public BaseMapper<?, ?> getMapper() {
-		return appUserMapper;
+		return customerMapper;
 	}
 }

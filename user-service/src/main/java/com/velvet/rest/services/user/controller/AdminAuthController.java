@@ -61,7 +61,7 @@ public class AdminAuthController implements BaseController {
 	 * 
 	 */
 	@ApiOperation(value = "Generate OTP for Admin User", nickname = "generateAdminUserOtp")
-	@PostMapping("/admins/auth/otp/generate")
+	@PostMapping("/users/admins/auth/otp/generate")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void generateOtp(@Valid @RequestBody GenerateOtpRequest otpRequest, @ApiIgnore Errors errors) {
 		adminUserService.generatePhoneOtp(otpRequest.getReferenceId(), otpRequest.getVerificationId());
@@ -72,7 +72,7 @@ public class AdminAuthController implements BaseController {
 	 * 
 	 */
 	@ApiOperation(value = "Login using OTP for Admin User", nickname = "verifyAdminUserOtpAndLogin")
-	@PostMapping("/admins/auth/otp/login")
+	@PostMapping("/users/admins/auth/otp/login")
 	public AuthResponse verifyOtpAndLogin(@Valid @RequestBody LoginOtpRequest otpRequest, @ApiIgnore Errors errors) {
 		String phone = otpRequest.getPhone();
 		String otp = otpRequest.getOtp();
@@ -92,7 +92,7 @@ public class AdminAuthController implements BaseController {
 	 * 
 	 */
 	@ApiOperation(value = "Login using Password for Admin User", nickname = "verifyAdminUserPwdAndLogin")
-	@PostMapping("/admins/auth/password/login")
+	@PostMapping("/users/admins/auth/password/login")
 	public AuthResponse verifyPasswordAndLogin(@Valid @RequestBody LoginPasswordRequest loginRequest, @ApiIgnore Errors errors) {
 		validateBean(loginRequest);
 		boolean isPhone = validateUsername(loginRequest.getUsername());
@@ -141,12 +141,12 @@ public class AdminAuthController implements BaseController {
 	}
 
 	/**
-	 * Logout AppUser.
+	 * Logout Admin.
 	 *
 	 * @return the response entity
 	 */
-	@ApiOperation(value = "Logout AppUser", nickname = "logoutAppUser")
-	@PostMapping("/admins/auth/logout")
+	@ApiOperation(value = "Logout Admin", nickname = "logoutAdmin")
+	@PostMapping("/users/admins/auth/logout")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void logout() {
 		adminUserService.logout();

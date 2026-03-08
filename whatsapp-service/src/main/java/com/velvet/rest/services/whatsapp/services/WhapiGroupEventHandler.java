@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.velvet.rest.services.whatsapp.beans.CreateAppUserRequest;
+import com.velvet.rest.services.whatsapp.beans.CreateCustomerRequest;
 import com.velvet.rest.services.whatsapp.beans.webhook.WhapiGroupParticipantsPayload;
 import com.velvet.rest.services.whatsapp.beans.webhook.WhapiGroupPayload;
 import com.velvet.rest.services.whatsapp.beans.webhook.WhapiParticipantPayload;
@@ -150,16 +150,16 @@ public class WhapiGroupEventHandler {
 			}
 
 			// Ensure user exists in user-service and map orgId
-			createAppUser(waUserId);
+			createCustomer(waUserId);
 		}
 		// Update participant count
 		updateParticipantCount(group);
 	}
 
-	private void createAppUser(String waUserId) {
+	private void createCustomer(String waUserId) {
 		try {
 			String phone = waUserId.contains("@") ? waUserId.substring(0, waUserId.indexOf("@")) : waUserId;
-			clientService.createAppUser(new CreateAppUserRequest(phone));
+			clientService.createCustomer(new CreateCustomerRequest(phone));
 			log.info("User ensured for phone: {}", phone);
 		} catch (Exception e) {
 			log.error("Failed to ensure user for waUserId: {}", waUserId, e);

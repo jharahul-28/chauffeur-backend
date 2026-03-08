@@ -39,6 +39,9 @@ public class WhapiMessageEntity extends BaseEntity {
 	@Column(name = "wa_message_id", nullable = false, unique = true)
 	private String waMessageId;
 
+	@Column(name = "chat_wa_id")
+	private String chatId;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "chat_id", nullable = false)
 	private WhapiChatEntity chat;

@@ -7,8 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.velvet.rest.services.whatsapp.beans.AppUserResponse;
-import com.velvet.rest.services.whatsapp.beans.CreateAppUserRequest;
+import com.velvet.rest.services.whatsapp.beans.CreateCustomerRequest;
+import com.velvet.rest.services.whatsapp.beans.CustomerResponse;
 import com.velvet.rest.services.whatsapp.beans.WhapiSendTextRequest;
 import com.velvet.rest.services.whatsapp.beans.WhapiSendTextResponse;
 
@@ -29,9 +29,9 @@ public class WhatsappClientService {
 	@Autowired
 	private WhapiClient whapiClient;
 
-	public void createAppUser(CreateAppUserRequest request) {
+	public void createCustomer(CreateCustomerRequest request) {
 		try {
-			userServiceClient.createAppUser(request);
+			userServiceClient.createCustomer(request);
 		} catch (Exception e) {
 			log.error("Failed to ensure user for waUserId: {}", request.getPhone(), e);
 		}
@@ -39,7 +39,7 @@ public class WhatsappClientService {
 
 	public Long getOrCreateCustomerId(String phone, UUID orgId) {
 		try {
-			ResponseEntity<AppUserResponse> response = userServiceClient.createAppUser(new CreateAppUserRequest(phone));
+			ResponseEntity<CustomerResponse> response = userServiceClient.createCustomer(new CreateCustomerRequest(phone));
 			if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
 				return response.getBody().getId();
 			}

@@ -63,7 +63,7 @@ public class ChauffeurAuthController implements BaseController {
 	 * Generate OTP for Chauffeur Application.
 	 */
 	@ApiOperation(value = "Generate OTP for Chauffeur Application", nickname = "generateChauffeurOtp")
-	@PostMapping("/chauffeurs/auth/otp/generate")
+	@PostMapping("/users/chauffeurs/auth/otp/generate")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void generateOtp(@Valid @RequestBody LoginGenerateOtpRequest otpRequest, @ApiIgnore Errors errors) {
 		logger.info("generateOtp :: request: {}", otpRequest);
@@ -82,7 +82,7 @@ public class ChauffeurAuthController implements BaseController {
 	 * Verify OTP and login for Chauffeur Application.
 	 */
 	@ApiOperation(value = "Login/Register using OTP for Chauffeur Application", nickname = "verifyChauffeurOtpAndLogin")
-	@PostMapping("/chauffeurs/auth/otp/verify")
+	@PostMapping("/users/chauffeurs/auth/otp/verify")
 	public AuthResponse verifyOtpAndLogin(@Valid @RequestBody LoginOtpRequest otpRequest, @ApiIgnore Errors errors) {
 		logger.info("verifyOtpAndLogin :: request: {}", otpRequest);
 		String phone = otpRequest.getCountryCode() + otpRequest.getPhone();
@@ -110,7 +110,7 @@ public class ChauffeurAuthController implements BaseController {
 	 * Logout Chauffeur.
 	 */
 	@ApiOperation(value = "Logout Chauffeur", nickname = "logoutChauffeur")
-	@PostMapping("/chauffeurs/auth/logout")
+	@PostMapping("/users/chauffeurs/auth/logout")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void logout() {
 		chauffeurService.logout();

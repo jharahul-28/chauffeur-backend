@@ -7,15 +7,15 @@ import lombok.Data;
 import lombok.ToString;
 
 /**
- * Bean to be returned with Contains Application Level User
+ * Bean to be returned with Contains Customer Level User
  *
  * @author Mohit
  * @version $Id: $Id
  */
 @Data
 @ToString
-@ApiModel(description = "App User details")
-public class AppUserBean extends UserBean {
+@ApiModel(description = "Customer details")
+public class CustomerBean extends UserBean {
 
 	private static final long serialVersionUID = -2969316166203486750L;
 
@@ -35,8 +35,8 @@ public class AppUserBean extends UserBean {
 
 	private UserAddressBean address;
 
-	public static AppUserBean newInstance() {
-		return new AppUserBean();
+	public static CustomerBean newInstance() {
+		return new CustomerBean();
 	}
 
 }

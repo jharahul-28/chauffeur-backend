@@ -1,13 +1,13 @@
 package com.velvet.rest.services.user.entity;
 
 /**
- * Column field mapping as constants for table AppUserConstants
+ * Column field mapping as constants for table CustomerConstants
  * 
  * @author mohit
  */
-public interface AppUserConstants {
+public interface CustomerConstants {
 
-	String TABLE_NAME = "app_users";
+	String TABLE_NAME = "customers";
 
 	String FIRSTNAME = "firstname";
 
