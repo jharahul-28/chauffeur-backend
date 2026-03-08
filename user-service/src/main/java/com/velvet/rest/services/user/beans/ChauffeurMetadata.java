@@ -13,4 +13,6 @@ public class ChauffeurMetadata implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private Integer numberOfRides = 0;
+
+	private Double workingHours = 0.0;
 }

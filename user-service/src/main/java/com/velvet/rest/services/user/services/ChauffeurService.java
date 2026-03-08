@@ -15,6 +15,7 @@ import com.velvet.rest.common.exceptions.ValidationException;
 import com.velvet.rest.common.utils.CollectionUtils;
 import com.velvet.rest.common.utils.ParamsUtils;
 import com.velvet.rest.common.websupport.base.BaseService;
+import com.velvet.rest.services.user.beans.ChauffeurBean;
 import com.velvet.rest.services.user.entity.ChauffeurEntity;
 import com.velvet.rest.services.user.repository.ChauffeurRepository;
 
@@ -64,10 +65,11 @@ public class ChauffeurService implements UserService, BaseService<ChauffeurEntit
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	public ChauffeurEntity createChauffeur(String phone, String userType) {
-		ChauffeurEntity chauffeur = (ChauffeurEntity) userService.registerUser(phone, userType, ChauffeurEntity.newInstance());
+	public ChauffeurEntity createChauffeur(String phone, String userType, ChauffeurBean chauffeurBean) {
+		ChauffeurEntity chauffeur = userService.registerUser(phone, userType, ChauffeurEntity.newInstance());
 		chauffeur.setAllowedSessions(ParamsUtils.getIntegerParam("CHAUFFEUR_ALLOWED_SESSIONS", 1));
-		return save(chauffeur);
+		chauffeur = save(chauffeur);
+		return save(chauffeur.buildChauffeur(chauffeurBean));
 	}
 
 	@Override
