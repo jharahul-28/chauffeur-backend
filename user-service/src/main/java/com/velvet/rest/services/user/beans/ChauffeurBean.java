@@ -29,11 +29,9 @@ public class ChauffeurBean extends UserBean {
 
 	private LocalDate dateOfBirth;
 
-	private String documents;
+	private ChauffeurDocuments documents;
 
 	private Double rating;
-
-	private Double workingHours;
 
 	private ChauffeurMetadata metadata;
 

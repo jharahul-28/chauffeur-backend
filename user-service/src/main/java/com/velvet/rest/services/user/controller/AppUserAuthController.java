@@ -73,9 +73,9 @@ public class AppUserAuthController implements BaseController {
 	@Autowired
 	private EmailService emailService;
 
-	private static String USER_TYPE = CommonConstants.UserTypes.APP_USER;
+	private static String USER_TYPE = CommonConstants.UserTypes.CHAUFFEUR;
 
-	private static ApplicationId APP_ID = ApplicationId.USER_APP;
+	private static ApplicationId APP_ID = ApplicationId.CUSTOMER_APP;
 
 	/**
 	 * Generate OTP for AppUser Application.

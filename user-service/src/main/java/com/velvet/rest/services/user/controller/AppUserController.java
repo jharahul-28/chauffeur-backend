@@ -226,8 +226,8 @@ public class AppUserController implements BaseController {
 	@GetMapping("/users/init")
 	public ResponseEntity<InitBean> init() {
 		logger.info("init :: request received");
-		String version = appUserService.appVersion(ApplicationId.USER_APP.toString());
-		Integer hardUpdate = appUserService.hardUpdate(ApplicationId.USER_APP.toString());
+		String version = appUserService.appVersion(ApplicationId.CUSTOMER_APP.toString());
+		Integer hardUpdate = appUserService.hardUpdate(ApplicationId.CUSTOMER_APP.toString());
 		InitBean response = InitBean.newInstance();
 		response.setVersion(version);
 		response.setHardUpdate(hardUpdate);
@@ -522,7 +522,7 @@ public class AppUserController implements BaseController {
 		logger.info("ensureUser :: phone: {}, orgId: {}", request.getPhone(), request.getOrgId());
 		AppUserEntity appUser = appUserService.findByPhone(request.getPhone());
 		if (appUser == null) {
-			appUser = appUserService.createAppUser(request.getPhone(), CommonConstants.UserTypes.APP_USER);
+			appUser = appUserService.createAppUser(request.getPhone(), CommonConstants.UserTypes.CHAUFFEUR);
 		}
 		if (request.getOrgId() != null && appUser.getOrgId() == null) {
 			appUser.setOrgId(request.getOrgId());

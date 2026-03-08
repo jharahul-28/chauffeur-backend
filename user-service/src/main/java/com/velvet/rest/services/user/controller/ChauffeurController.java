@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.velvet.rest.common.beans.ErrorBean;
 import com.velvet.rest.common.constants.CommonConstants;
+import com.velvet.rest.common.exceptions.ValidationException;
 import com.velvet.rest.common.dbsupport.pagination.PageAndSortRequest.SortDirection;
 import com.velvet.rest.common.dbsupport.pagination.PageAndSortResult;
 import com.velvet.rest.common.websupport.base.BaseController;
@@ -54,8 +55,7 @@ public class ChauffeurController implements BaseController {
 		String phone = chauffeurBean.getCountryCode() != null
 				? chauffeurBean.getCountryCode() + chauffeurBean.getPhone()
 				: chauffeurBean.getPhone();
-		ChauffeurEntity chauffeur = chauffeurService.createChauffeur(phone, CommonConstants.UserTypes.CHAUFFEUR);
-		chauffeur = chauffeurService.save(getMapper().mapSrcToDest(chauffeurBean, chauffeur));
+		ChauffeurEntity chauffeur = chauffeurService.createChauffeur(phone, CommonConstants.UserTypes.CHAUFFEUR, chauffeurBean);
 		return chauffeur.getId();
 	}
 
@@ -97,13 +97,13 @@ public class ChauffeurController implements BaseController {
 	@PostMapping("/chauffeurs/{id}/block")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void blockChauffeur(@PathVariable Long id) {
-		ChauffeurEntity Chauffeur = chauffeurService.findById(id);
-		if (Chauffeur == null) {
-			throw new com.velvet.rest.common.exceptions.ValidationException(
+		ChauffeurEntity chauffeur = chauffeurService.findById(id);
+		if (chauffeur == null) {
+			throw new ValidationException(
 					ErrorBean.withError(AppErrors.USER_NOT_FOUND, "Chauffeur not found with the provided Id", "id"));
 		}
-		Chauffeur.setBlocked(true);
-		chauffeurService.save(Chauffeur);
+		chauffeur.setBlocked(true);
+		chauffeurService.save(chauffeur);
 		chauffeurService.logoutById(id);
 	}
 
@@ -112,13 +112,13 @@ public class ChauffeurController implements BaseController {
 	@PostMapping("/chauffeurs/{id}/unblock")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void unblockChauffeur(@PathVariable Long id) {
-		ChauffeurEntity Chauffeur = chauffeurService.findById(id);
-		if (Chauffeur == null) {
-			throw new com.velvet.rest.common.exceptions.ValidationException(
+		ChauffeurEntity chauffeur = chauffeurService.findById(id);
+		if (chauffeur == null) {
+			throw new ValidationException(
 					ErrorBean.withError(AppErrors.USER_NOT_FOUND, "Chauffeur not found with the provided Id", "id"));
 		}
-		Chauffeur.setBlocked(false);
-		chauffeurService.save(Chauffeur);
+		chauffeur.setBlocked(false);
+		chauffeurService.save(chauffeur);
 	}
 
 	@Override
