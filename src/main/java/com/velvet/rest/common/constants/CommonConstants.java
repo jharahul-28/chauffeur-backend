@@ -22,9 +22,11 @@ public class CommonConstants {
 	 * The Enum Protocol.
 	 */
 	public interface UserTypes {
-		String APP_USER = "app-user";
+		String CUSTOMER = "customer";
 
 		String ADMIN = "admin";
+
+		String CHAUFFEUR = "chauffeur";
 	}
 
 	/**

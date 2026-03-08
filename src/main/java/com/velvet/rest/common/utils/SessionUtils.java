@@ -35,7 +35,7 @@ public class SessionUtils {
 	public static final String UNKNOWN = "Unknown";
 
 	public enum ApplicationId {
-		ADMIN_APP, USER_APP
+		ADMIN_APP, CUSTOMER_APP, CHAUFFEUR_APP
 	}
 
 	/**
@@ -108,13 +108,13 @@ public class SessionUtils {
 
 	/**
 	 * <p>
-	 * isAuthUserAdmin.
+	 * isCustomer.
 	 * </p>
 	 *
 	 * @return a boolean.
 	 */
-	public static boolean isAppUser() {
-		return getAuthUser() != null ? getAuthUser().getUserType().equals(CommonConstants.UserTypes.APP_USER) : false;
+	public static boolean isCustomer() {
+		return getAuthUser() != null ? getAuthUser().getUserType().equals(CommonConstants.UserTypes.CUSTOMER) : false;
 	}
 
 	/**
@@ -126,6 +126,17 @@ public class SessionUtils {
 	 */
 	public static boolean isAdmin() {
 		return getAuthUser() != null ? getAuthUser().getUserType().equals(CommonConstants.UserTypes.ADMIN) : false;
+	}
+
+	/**
+	 * <p>
+	 * isChauffeur.
+	 * </p>
+	 *
+	 * @return a boolean.
+	 */
+	public static boolean isChauffeur() {
+		return getAuthUser() != null ? getAuthUser().getUserType().equals(CommonConstants.UserTypes.CHAUFFEUR) : false;
 	}
 
 	/**
