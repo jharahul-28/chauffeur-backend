@@ -68,7 +68,7 @@ public class AuthUserService implements BaseService<AuthUserEntity> {
 		return group;
 	}
 
-	public <E extends UserEntity> E registerAppUser(String phone, String userType, E user) {
+	public <E extends UserEntity> E registerUser(String phone, String userType, E user) {
 		Long userId = createNewUser(userType);
 		user.setId(userId);
 		user.setPhone(phone);

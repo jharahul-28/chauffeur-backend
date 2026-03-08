@@ -48,4 +48,6 @@ public class WhapiMessagePayload implements Serializable {
 	private WhapiActionPayload action;
 
 	private WhapiTextPayload text;
+
+	private WhapiImagePayload image;
 }
