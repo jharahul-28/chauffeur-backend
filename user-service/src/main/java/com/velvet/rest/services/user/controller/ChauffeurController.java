@@ -49,7 +49,7 @@ public class ChauffeurController implements BaseController {
 
 	//ADMIN PORTAL CREATES A CHAUFFEUR. NO SELF SIGNUP FOR CHAUFFEUR.
 	@ApiOperation(value = "Create a new Chauffeur", nickname = "createChauffeur")
-	@PostMapping("/chauffeurs")
+	@PostMapping("/users/chauffeurs")
 	@ResponseStatus(HttpStatus.CREATED)
 	public Long createChauffeur(@Valid @RequestBody ChauffeurBean chauffeurBean) {
 		String phone = chauffeurBean.getCountryCode() != null
@@ -60,7 +60,7 @@ public class ChauffeurController implements BaseController {
 	}
 
 	@ApiOperation(value = "List all Chauffeurs paginated", nickname = "findChauffeurListPaginated")
-	@GetMapping("/chauffeurs")
+	@GetMapping("/users/chauffeurs")
 	public PageAndSortResult<ChauffeurBean> findAllPaginated(@RequestParam(defaultValue = "1") Integer pageNo,
 			@RequestParam(defaultValue = "20") Integer pageSize, @RequestParam(required = false) String sortBy,
 			@RequestParam(required = false) SortDirection sortDirection, HttpServletRequest request) {
@@ -79,7 +79,7 @@ public class ChauffeurController implements BaseController {
 
 	//CHAUFFEUR APP INTERNAL PROFILE
 	@ApiOperation(value = "Get Chauffeur's own profile", nickname = "getChauffeurProfile")
-	@GetMapping("/chauffeurs/profile")
+	@GetMapping("/users/chauffeurs/profile")
 	public ResponseEntity<ChauffeurProfileBean> getChauffeurProfile() {
 		ChauffeurEntity chauffeur = chauffeurService.getAuthEntity();
 		if (chauffeur == null) {
@@ -94,7 +94,7 @@ public class ChauffeurController implements BaseController {
 
 	//BLOCK A CHAUFFEUR -> ADMIN PORTAL
 	@ApiOperation(value = "Block Chauffeur", nickname = "blockChauffeur")
-	@PostMapping("/chauffeurs/{id}/block")
+	@PostMapping("/users/chauffeurs/{id}/block")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void blockChauffeur(@PathVariable Long id) {
 		ChauffeurEntity chauffeur = chauffeurService.findById(id);
@@ -109,7 +109,7 @@ public class ChauffeurController implements BaseController {
 
 	//UNBLOCK A CHAUFFEUR -> ADMIN PORTAL
 	@ApiOperation(value = "Unblock Chauffeur", nickname = "unblockChauffeur")
-	@PostMapping("/chauffeurs/{id}/unblock")
+	@PostMapping("/users/chauffeurs/{id}/unblock")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void unblockChauffeur(@PathVariable Long id) {
 		ChauffeurEntity chauffeur = chauffeurService.findById(id);

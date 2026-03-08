@@ -50,7 +50,7 @@ public class GroupController implements BaseController {
 	 *
 	 */
 	@ApiOperation(value = "List all Groups in application store.", nickname = "findGroupList")
-	@GetMapping("/groups")
+	@GetMapping("/users/groups")
 	public ResponseEntity<List<GroupBean>> findAll(@RequestParam(required = false) String name, HttpServletRequest request) {
 		final List<GroupEntity> results = groupService.findAll(getSearchParams(request, GroupEntity.class));
 		if (results == null || results.isEmpty()) {
@@ -64,7 +64,7 @@ public class GroupController implements BaseController {
 	 *
 	 */
 	@ApiOperation(value = "Get one Group with provided id.", nickname = "findOneGroup")
-	@GetMapping("/groups/{id}")
+	@GetMapping("/users/groups/{id}")
 	public ResponseEntity<GroupBean> findOne(@PathVariable Long id) {
 		GroupEntity entity = groupService.findById(id);
 		if (entity == null) {
@@ -79,7 +79,7 @@ public class GroupController implements BaseController {
 	 * </p>
 	 */
 	@ApiOperation(value = "create a new Group", nickname = "createGroup")
-	@PostMapping("/groups")
+	@PostMapping("/users/groups")
 	@ResponseStatus(HttpStatus.CREATED)
 	public Long save(@Valid @RequestBody GroupBean group, @ApiIgnore Errors errors) {
 		checkError(errors);
@@ -94,7 +94,7 @@ public class GroupController implements BaseController {
 	 *
 	 */
 	@ApiOperation(value = "update existing group with provided id", nickname = "updateGroup")
-	@PutMapping("/groups/{id}")
+	@PutMapping("/users/groups/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void update(@PathVariable Long id, @Valid @RequestBody GroupBean groupBean, @ApiIgnore Errors errors) {
 		groupBean.setId(id);
@@ -110,7 +110,7 @@ public class GroupController implements BaseController {
 	 *
 	 */
 	@ApiOperation(value = "update group privileges with provided id", nickname = "updateGroupPrivileges")
-	@PutMapping("/groups/{id}/privileges")
+	@PutMapping("/users/groups/{id}/privileges")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void updatePrivileges(@PathVariable Long id, @Valid @RequestBody GroupPrivilegeBean groupPrivileges, @ApiIgnore Errors errors) {
 		checkError(errors);

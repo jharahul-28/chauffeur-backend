@@ -9,14 +9,14 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
- * Request containing AppUser Info
+ * Request containing Customer Info
  *
  * @author Mohit
  * @version $Id: $Id
  */
 @Data
 @ApiModel(description = "User Request For update info")
-public class AppUserInfoRequest implements Serializable {
+public class CustomerInfoRequest implements Serializable {
 
 	private static final long serialVersionUID = 1632130020507453176L;
 

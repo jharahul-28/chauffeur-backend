@@ -2,10 +2,12 @@ package com.velvet.rest.services.whatsapp.services;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -42,6 +44,9 @@ public class WhapiMessageEventHandler {
 	@Autowired
 	@Qualifier("whatsappTaskScheduler")
 	private TaskScheduler taskScheduler;
+
+	// chatId -> [triggerTimestamp (epoch seconds), sendAfterMs (epoch millis)]
+	private final ConcurrentHashMap<String, long[]> pendingThirdMessages = new ConcurrentHashMap<>();
 
 	public void handle(WhapiWebhookRequest payload) {
 
@@ -91,6 +96,7 @@ public class WhapiMessageEventHandler {
 
 		WhapiMessageEntity message = WhapiMessageEntity.builder()
 				.waMessageId(waMessageId)
+				.chatId(chatId)
 				.chat(chat)
 				.senderWaId(msg.getFrom())
 				.senderName(msg.getFromName())
@@ -122,11 +128,23 @@ public class WhapiMessageEventHandler {
 		sendText(chatId, ParamsUtils.getParam("WA_INFO_MSG2_MESSAGE"));
 		log.info("Auto-replied (msg2) to chatId: {}", chatId);
 
-		// 3rd message — if customer hasn't replied after configured delay
-		int msg3DelaySeconds = ParamsUtils.getIntegerParam("WA_INFO_MSG3_NO_REPLY_DELAY_SECONDS", 300);
-		taskScheduler.schedule(
-				() -> sendThirdMessageIfNoReply(chatId, triggerTimestamp),
-				Instant.now().plusSeconds(msg3DelaySeconds));
+		// 3rd message — schedule via @Scheduled processor after 30 min
+		long sendAfterMs = System.currentTimeMillis() + (30L * 60 * 1000);
+		pendingThirdMessages.put(chatId, new long[]{triggerTimestamp, sendAfterMs});
+		log.info("Queued msg3 check for chatId: {} at {}", chatId, sendAfterMs);
+	}
+
+	@Scheduled(fixedDelay = 60_000)
+	public void processPendingThirdMessages() {
+		long now = System.currentTimeMillis();
+		pendingThirdMessages.entrySet().removeIf(entry -> {
+			long[] data = entry.getValue();
+			if (now >= data[1]) {
+				sendThirdMessageIfNoReply(entry.getKey(), data[0]);
+				return true;
+			}
+			return false;
+		});
 	}
 
 	private void sendThirdMessageIfNoReply(String chatId, long triggerTimestamp) {
@@ -144,6 +162,7 @@ public class WhapiMessageEventHandler {
 		messageService.sendTextMessage(WhapiSendTextRequest.builder()
 				.to(phone)
 				.body(body)
+				.typingTime(3)
 				.build());
 	}
 

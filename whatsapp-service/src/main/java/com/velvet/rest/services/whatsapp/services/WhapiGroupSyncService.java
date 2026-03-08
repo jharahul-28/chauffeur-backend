@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import com.velvet.rest.services.whatsapp.beans.WhapiGroupResponse;
 import com.velvet.rest.services.whatsapp.clients.WhapiClient;
 import com.velvet.rest.services.whatsapp.clients.WhatsappClientService;
-import com.velvet.rest.services.whatsapp.beans.CreateAppUserRequest;
+import com.velvet.rest.services.whatsapp.beans.CreateCustomerRequest;
 import com.velvet.rest.services.whatsapp.entity.WhapiChatEntity;
 import com.velvet.rest.services.whatsapp.entity.WhapiGroupEntity;
 import com.velvet.rest.services.whatsapp.entity.WhapiGroupParticipantEntity;
@@ -103,24 +103,24 @@ public class WhapiGroupSyncService {
 				WhapiGroupParticipantEntity participant = WhapiGroupParticipantEntity.builder().group(group).waUserId(p.getId())
 						.role(p.getRank()).joinedAtTs(System.currentTimeMillis() / 1000).build();
 				participantRepository.save(participant);
-				createAppUser(p.getId());
+				createCustomer(p.getId());
 			} else {
 				existing.setRole(p.getRank());
 				if (existing.getLeftAtTs() != null) {
 					existing.setLeftAtTs(null);
 					existing.setActive(1);
 					existing.setJoinedAtTs(System.currentTimeMillis() / 1000);
-					createAppUser(p.getId());
+					createCustomer(p.getId());
 				}
 				participantRepository.save(existing);
 			}
 		}
 	}
 
-	private void createAppUser(String waUserId) {
+	private void createCustomer(String waUserId) {
 		try {
 			String phone = waUserId.contains("@") ? waUserId.substring(0, waUserId.indexOf("@")) : waUserId;
-			clientService.createAppUser(new CreateAppUserRequest(phone));
+			clientService.createCustomer(new CreateCustomerRequest(phone));
 		} catch (Exception e) {
 			log.error("Failed to ensure user for waUserId: {}", waUserId, e);
 		}

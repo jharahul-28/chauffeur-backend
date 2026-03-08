@@ -5,15 +5,15 @@ import lombok.Data;
 import lombok.ToString;
 
 /**
- * Bean to be returned with Contains Application Level User
+ * Bean to be returned with Contains Customer Level User
  *
  * @author Mohit
  * @version $Id: $Id
  */
 @Data
 @ToString
-@ApiModel(description = "App User details")
-public class AppUserResponse {
+@ApiModel(description = "Customer details")
+public class CustomerResponse {
 
 	private Long id;
 
@@ -27,8 +27,8 @@ public class AppUserResponse {
 
 	private String city;
 
-	public static AppUserResponse newInstance() {
-		return new AppUserResponse();
+	public static CustomerResponse newInstance() {
+		return new CustomerResponse();
 	}
 
 }

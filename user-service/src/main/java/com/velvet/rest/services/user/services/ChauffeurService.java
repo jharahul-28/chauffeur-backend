@@ -66,7 +66,7 @@ public class ChauffeurService implements UserService, BaseService<ChauffeurEntit
 
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ChauffeurEntity createChauffeur(String phone, String userType, ChauffeurBean chauffeurBean) {
-		ChauffeurEntity chauffeur = (ChauffeurEntity) userService.registerAppUser(phone, userType, ChauffeurEntity.newInstance());
+		ChauffeurEntity chauffeur = userService.registerUser(phone, userType, ChauffeurEntity.newInstance());
 		chauffeur.setAllowedSessions(ParamsUtils.getIntegerParam("CHAUFFEUR_ALLOWED_SESSIONS", 1));
 		chauffeur = save(chauffeur);
 		return save(chauffeur.buildChauffeur(chauffeurBean));

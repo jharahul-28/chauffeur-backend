@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/mohitaggarwal/mohit/projects/velvet/git/nucleus/**)"
+    ]
+  }
+}

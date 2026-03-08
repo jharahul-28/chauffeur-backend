@@ -1,7 +1,6 @@
 package com.velvet.rest.services.user.entity;
 
 import java.io.Serializable;
-import java.sql.Date;
 import java.util.UUID;
 
 import javax.persistence.Column;
@@ -14,16 +13,16 @@ import lombok.Data;
 import lombok.ToString;
 
 /**
- * AppUserEntity related information
+ * CustomerEntity related information
  * 
  * @author mohit
  */
 @Entity
-@Table(name = AppUserConstants.TABLE_NAME)
+@Table(name = CustomerConstants.TABLE_NAME)
 @DynamicUpdate
 @Data
 @ToString
-public class AppUserEntity extends UserEntity implements Serializable, AppUserConstants {
+public class CustomerEntity extends UserEntity implements Serializable, CustomerConstants {
 
 	private static final long serialVersionUID = -3859831095490774210L;
 
@@ -57,8 +56,8 @@ public class AppUserEntity extends UserEntity implements Serializable, AppUserCo
 	@Column(name = WELCOME_MESSAGE_SENT)
 	private Boolean welcomeMessageSent = false;
 
-	public static AppUserEntity newInstance() {
-		AppUserEntity entity = new AppUserEntity();
+	public static CustomerEntity newInstance() {
+		CustomerEntity entity = new CustomerEntity();
 		return entity;
 	}
 }

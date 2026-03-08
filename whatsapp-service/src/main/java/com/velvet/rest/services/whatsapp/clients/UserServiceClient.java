@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.velvet.rest.common.openfeign.FeignInternalConfiguration;
-import com.velvet.rest.services.whatsapp.beans.AppUserResponse;
-import com.velvet.rest.services.whatsapp.beans.CreateAppUserRequest;
+import com.velvet.rest.services.whatsapp.beans.CreateCustomerRequest;
+import com.velvet.rest.services.whatsapp.beans.CustomerResponse;
 
 /**
  * Feign client for User Service.
@@ -15,6 +15,6 @@ import com.velvet.rest.services.whatsapp.beans.CreateAppUserRequest;
 @FeignClient(value = "WhapiUserServiceClient", url = "${client.user.url}", configuration = { FeignInternalConfiguration.class })
 public interface UserServiceClient {
 
-	@PostMapping(value = "/users/internal/whatsapp")
-	ResponseEntity<AppUserResponse> createAppUser(@RequestBody CreateAppUserRequest request);
+	@PostMapping(value = "/users/customers/internal/whatsapp")
+	ResponseEntity<CustomerResponse> createCustomer(@RequestBody CreateCustomerRequest request);
 }

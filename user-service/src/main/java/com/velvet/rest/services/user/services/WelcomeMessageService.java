@@ -16,7 +16,7 @@ import com.velvet.rest.services.user.beans.OrgBasicResponse;
 import com.velvet.rest.services.user.beans.WalletResponse;
 import com.velvet.rest.services.user.beans.WhapiSendTextRequest;
 import com.velvet.rest.services.user.clients.UserClientService;
-import com.velvet.rest.services.user.entity.AppUserEntity;
+import com.velvet.rest.services.user.entity.CustomerEntity;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,20 +25,20 @@ import lombok.extern.slf4j.Slf4j;
 public class WelcomeMessageService {
 
 	@Autowired
-	private AppUserService appUserService;
+	private CustomerService customerService;
 
 	@Autowired
 	private UserClientService clientService;
 
 	public void sendPendingWelcomeMessages() {
-		List<AppUserEntity> users = appUserService.findPendingWelcomeUsers();
+		List<CustomerEntity> users = customerService.findPendingWelcomeUsers();
 		if (CollectionUtils.isEmpty(users)) {
 			return;
 		}
 
 		log.info("Found {} users pending welcome message", users.size());
 
-		List<Long> customerIds = users.stream().map(AppUserEntity::getId).distinct().collect(Collectors.toList());
+		List<Long> customerIds = users.stream().map(CustomerEntity::getId).distinct().collect(Collectors.toList());
 
 		Map<Long, WalletResponse> walletMap = clientService.getUserWallets(customerIds).stream()
 				.collect(Collectors.toMap(WalletResponse::getUserId, w -> w, (a, b) -> a));
@@ -47,19 +47,19 @@ public class WelcomeMessageService {
 		Set<UUID> noCommsOrgs = Arrays.stream(ParamsUtils.getParam("ORG_IDS_NO_COMMUNICATION", "").split(","))
 				.map(String::trim).filter(s -> !s.isEmpty()).map(UUID::fromString).collect(Collectors.toSet());
 
-		for (AppUserEntity user : users) {
+		for (CustomerEntity user : users) {
 			try {
 				if(user.getOrgId()!=null && !noCommsOrgs.contains(user.getOrgId())) {
 					sendWelcomeMessage(user, walletMap, welcomeMessage);
 				}
-				appUserService.markWelcomeMessageSent(user.getId());
+				customerService.markWelcomeMessageSent(user.getId());
 			} catch (Exception e) {
 				log.error("Failed to send welcome message to user {}: {}", user.getId(), e.getMessage(), e);
 			}
 		}
 	}
 
-	private void sendWelcomeMessage(AppUserEntity user, Map<Long, WalletResponse> walletMap, String welcomeMessage) {
+	private void sendWelcomeMessage(CustomerEntity user, Map<Long, WalletResponse> walletMap, String welcomeMessage) {
 		String phone = user.getPhone();
 		if (phone == null) {
 			log.warn("No phone number for user {}", user.getId());
