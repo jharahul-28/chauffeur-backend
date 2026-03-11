@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.velvet.rest.common.beans.ErrorBean;
@@ -50,13 +49,12 @@ public class ChauffeurController implements BaseController {
 	//ADMIN PORTAL CREATES A CHAUFFEUR. NO SELF SIGNUP FOR CHAUFFEUR.
 	@ApiOperation(value = "Create a new Chauffeur", nickname = "createChauffeur")
 	@PostMapping("/users/chauffeurs")
-	@ResponseStatus(HttpStatus.CREATED)
-	public Long createChauffeur(@Valid @RequestBody ChauffeurBean chauffeurBean) {
+	public ResponseEntity<ChauffeurBean> createChauffeur(@Valid @RequestBody ChauffeurBean chauffeurBean) {
 		String phone = chauffeurBean.getCountryCode() != null
 				? chauffeurBean.getCountryCode() + chauffeurBean.getPhone()
 				: chauffeurBean.getPhone();
 		ChauffeurEntity chauffeur = chauffeurService.createChauffeur(phone, CommonConstants.UserTypes.CHAUFFEUR, chauffeurBean);
-		return chauffeur.getId();
+		return ResponseEntity.status(HttpStatus.CREATED).body(getMapper().mapSrcToDest(chauffeur, ChauffeurBean.newInstance()));
 	}
 
 	@ApiOperation(value = "List all Chauffeurs paginated", nickname = "findChauffeurListPaginated")
@@ -92,33 +90,34 @@ public class ChauffeurController implements BaseController {
 		return ResponseEntity.ok(profile);
 	}
 
-	//BLOCK A CHAUFFEUR -> ADMIN PORTAL
-	@ApiOperation(value = "Block Chauffeur", nickname = "blockChauffeur")
-	@PostMapping("/users/chauffeurs/{id}/block")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void blockChauffeur(@PathVariable Long id) {
+	//GET CHAUFFEUR BY ID -> ADMIN PORTAL
+	@ApiOperation(value = "Get Chauffeur by ID", nickname = "getChauffeurById")
+	@GetMapping("/users/chauffeurs/{id}")
+	public ChauffeurBean getChauffeurById(@PathVariable Long id) {
 		ChauffeurEntity chauffeur = chauffeurService.findById(id);
 		if (chauffeur == null) {
 			throw new ValidationException(
 					ErrorBean.withError(AppErrors.USER_NOT_FOUND, "Chauffeur not found with the provided Id", "id"));
 		}
-		chauffeur.setBlocked(true);
-		chauffeurService.save(chauffeur);
-		chauffeurService.logoutById(id);
+		return getMapper().mapSrcToDest(chauffeur, ChauffeurBean.newInstance());
 	}
 
-	//UNBLOCK A CHAUFFEUR -> ADMIN PORTAL
-	@ApiOperation(value = "Unblock Chauffeur", nickname = "unblockChauffeur")
-	@PostMapping("/users/chauffeurs/{id}/unblock")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void unblockChauffeur(@PathVariable Long id) {
+	//TOGGLE BLOCK/UNBLOCK A CHAUFFEUR -> ADMIN PORTAL
+	@ApiOperation(value = "Toggle Block/Unblock Chauffeur", nickname = "toggleBlockChauffeur")
+	@PostMapping("/users/chauffeurs/{id}/toggle-block")
+	public ResponseEntity<String> toggleBlockChauffeur(@PathVariable Long id) {
 		ChauffeurEntity chauffeur = chauffeurService.findById(id);
 		if (chauffeur == null) {
 			throw new ValidationException(
 					ErrorBean.withError(AppErrors.USER_NOT_FOUND, "Chauffeur not found with the provided Id", "id"));
 		}
-		chauffeur.setBlocked(false);
+		boolean isBlocked = chauffeur.getBlocked();
+		chauffeur.setBlocked(!isBlocked);
 		chauffeurService.save(chauffeur);
+		if (isBlocked == false) {
+			chauffeurService.logoutById(id);
+		}
+		return ResponseEntity.ok(isBlocked == false ? "Chauffeur Blocked Successfully" : "Chauffeur Unblocked Successfully");
 	}
 
 	@Override
