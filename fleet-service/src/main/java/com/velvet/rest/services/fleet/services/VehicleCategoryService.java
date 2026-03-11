@@ -2,17 +2,18 @@ package com.velvet.rest.services.fleet.services;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.velvet.rest.common.beans.ErrorBean;
 import com.velvet.rest.common.dbsupport.crud.BaseCrudRepository;
+import com.velvet.rest.common.exceptions.ValidationException;
 import com.velvet.rest.common.websupport.base.BaseService;
-import com.velvet.rest.services.fleet.entity.VehicleCategoryConstants.CategoryType;
 import com.velvet.rest.services.fleet.entity.VehicleCategoryEntity;
+import com.velvet.rest.services.fleet.errors.AppErrors;
 import com.velvet.rest.services.fleet.repository.VehicleCategoryRepository;
 
 /**
@@ -30,13 +31,8 @@ public class VehicleCategoryService implements BaseService<VehicleCategoryEntity
 	}
 
 	@Transactional(readOnly = true)
-	public VehicleCategoryEntity getById(UUID id) {
+	public VehicleCategoryEntity getById(Long id) {
 		return findRecordById(id);
-	}
-
-	@Transactional(readOnly = true)
-	public VehicleCategoryEntity getByType(CategoryType type) {
-		return vehicleCategoryRepository.findByType(type);
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -45,17 +41,18 @@ public class VehicleCategoryService implements BaseService<VehicleCategoryEntity
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	public VehicleCategoryEntity updateBasePrice(UUID id, BigDecimal basePrice) {
+	public VehicleCategoryEntity updateBasePrice(Long id, BigDecimal basePrice) {
 		VehicleCategoryEntity category = findRecordById(id);
 		category.setBasePrice(basePrice);
 		return vehicleCategoryRepository.save(category);
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void inactivateCategory(UUID id) {
-		VehicleCategoryEntity category = findRecordById(id);
-		category.setActive(0);
-		vehicleCategoryRepository.save(category);
+	public VehicleCategoryEntity toggleCategoryStatus(Long id) {
+		VehicleCategoryEntity category = vehicleCategoryRepository.findById(id)
+				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.CATEGORY_NOT_FOUND, "Category not found", "id")));
+		category.setActive(category.getActive() == 1 ? 0 : 1);
+		return vehicleCategoryRepository.save(category);
 	}
 
 	@Override

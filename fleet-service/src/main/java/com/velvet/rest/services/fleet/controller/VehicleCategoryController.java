@@ -1,7 +1,6 @@
 package com.velvet.rest.services.fleet.controller;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.velvet.rest.common.websupport.base.BaseController;
 import com.velvet.rest.services.common.mapper.BaseMapper;
+import com.velvet.rest.services.fleet.beans.VehicleCategoryBean;
 import com.velvet.rest.services.fleet.entity.VehicleCategoryEntity;
 import com.velvet.rest.services.fleet.services.VehicleCategoryService;
 
@@ -46,39 +46,39 @@ public class VehicleCategoryController implements BaseController {
 
 	@ApiOperation(value = "Get all active vehicle categories", nickname = "getAllVehicleCategories")
 	@GetMapping("/fleet/categories")
-	public ResponseEntity<List<VehicleCategoryEntity>> getAllCategories() {
+	public ResponseEntity<List<VehicleCategoryBean>> getAllCategories() {
 		List<VehicleCategoryEntity> categories = vehicleCategoryService.getAllCategories();
-		return ResponseEntity.ok(categories);
+		return ResponseEntity.ok(getMapper().mapAsList(categories, VehicleCategoryBean.class));
 	}
 
 	@ApiOperation(value = "Get vehicle category by ID", nickname = "getVehicleCategoryById")
 	@GetMapping("/fleet/categories/{id}")
-	public ResponseEntity<VehicleCategoryEntity> getCategoryById(@PathVariable UUID id) {
+	public ResponseEntity<VehicleCategoryBean> getCategoryById(@PathVariable Long id) {
 		VehicleCategoryEntity category = vehicleCategoryService.getById(id);
 		if (category == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
-		return ResponseEntity.ok(category);
+		return ResponseEntity.ok(getMapper().mapSrcToDest(category, VehicleCategoryBean.newInstance()));
 	}
 
 	@ApiOperation(value = "Create a new vehicle category", nickname = "createVehicleCategory")
 	@PostMapping("/fleet/categories")
 	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<VehicleCategoryEntity> createCategory(@Valid @RequestBody VehicleCategoryEntity category) {
-		return ResponseEntity.status(HttpStatus.CREATED).body(vehicleCategoryService.createCategory(category));
+	public ResponseEntity<VehicleCategoryBean> createCategory(@Valid @RequestBody VehicleCategoryEntity category) {
+		VehicleCategoryEntity created = vehicleCategoryService.createCategory(category);
+		return ResponseEntity.status(HttpStatus.CREATED).body(getMapper().mapSrcToDest(created, VehicleCategoryBean.newInstance()));
 	}
 
 	@ApiOperation(value = "Update base price of a vehicle category", nickname = "updateVehicleCategoryBasePrice")
 	@PatchMapping("/fleet/categories/{id}/base-price")
-	public ResponseEntity<VehicleCategoryEntity> updateBasePrice(@PathVariable UUID id, @RequestParam BigDecimal basePrice) {
-		return ResponseEntity.ok(vehicleCategoryService.updateBasePrice(id, basePrice));
+	public ResponseEntity<VehicleCategoryBean> updateBasePrice(@PathVariable Long id, @RequestParam BigDecimal basePrice) {
+		return ResponseEntity.ok(getMapper().mapSrcToDest(vehicleCategoryService.updateBasePrice(id, basePrice), VehicleCategoryBean.newInstance()));
 	}
 
-	@ApiOperation(value = "Inactivate a vehicle category", nickname = "inactivateVehicleCategory")
-	@PatchMapping("/fleet/categories/{id}/inactivate")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void inactivateCategory(@PathVariable UUID id) {
-		vehicleCategoryService.inactivateCategory(id);
+	@ApiOperation(value = "Toggle active status of a vehicle category", nickname = "toggleVehicleCategoryStatus")
+	@PatchMapping("/fleet/categories/{id}/toggle-status")
+	public ResponseEntity<VehicleCategoryBean> toggleCategoryStatus(@PathVariable Long id) {
+		return ResponseEntity.ok(getMapper().mapSrcToDest(vehicleCategoryService.toggleCategoryStatus(id), VehicleCategoryBean.newInstance()));
 	}
 
 	@Override

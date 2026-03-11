@@ -6,8 +6,4 @@ package com.velvet.rest.services.fleet.entity;
 public interface VehicleCategoryConstants {
 
 	String VEHICLE_CATEGORY_TABLE_NAME = "vehicle_categories";
-
-	enum CategoryType {
-		VELVET_ELITE, VELVET_PREMIER, VELVET_VAULT
-	}
 }

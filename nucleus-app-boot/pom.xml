@@ -31,6 +31,10 @@
 			<groupId>com.velvet.rest.services.app</groupId>
 			<artifactId>velvet-agent-service</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.velvet.rest.services.app</groupId>
+			<artifactId>velvet-fleet-service</artifactId>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
