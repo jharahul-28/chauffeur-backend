@@ -1,0 +1,79 @@
+package com.velvet.rest.services.fleet.entity;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Type;
+
+import com.velvet.rest.common.websupport.base.BaseEntity;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+/**
+ * VehicleEntity - represents a vehicle in the fleet
+ */
+@Entity
+@Table(name = VehicleConstants.VEHICLE_TABLE_NAME)
+@DynamicUpdate
+@Data
+@ToString
+@EqualsAndHashCode(callSuper = false)
+public class VehicleEntity extends BaseEntity implements VehicleConstants {
+
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id", updatable = false, nullable = false)
+	private Long id;
+
+	@Column(name = "vehicle_number", length = 20, nullable = false, unique = true)
+	private String vehicleNumber;
+
+	@Column(name = "category_id", nullable = false, updatable = false, insertable = false)
+	private Long categoryId;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "category_id", nullable = false)
+	private VehicleCategoryEntity category;
+
+	@Column(name = "brand", length = 100, nullable = false)
+	private String brand;
+
+	@Column(name = "model", length = 100, nullable = false)
+	private String model;
+
+	@Column(name = "seating_capacity", nullable = false)
+	private Integer seatingCapacity;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "fuel_type", length = 20, nullable = false)
+	private FuelType fuelType;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "transmission", length = 10, nullable = false)
+	private Transmission transmission;
+
+	@Column(name = "available", nullable = false)
+	private Boolean available = true;
+	
+	@Type(type = "jsonb")
+	@Column(name = "metadata", columnDefinition = "jsonb")
+	private VehicleMetadata metadata = new VehicleMetadata();
+
+	public static VehicleEntity newInstance() {
+		return new VehicleEntity();
+	}
+}
