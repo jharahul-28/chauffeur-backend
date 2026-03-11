@@ -49,12 +49,12 @@ public class ChauffeurController implements BaseController {
 	//ADMIN PORTAL CREATES A CHAUFFEUR. NO SELF SIGNUP FOR CHAUFFEUR.
 	@ApiOperation(value = "Create a new Chauffeur", nickname = "createChauffeur")
 	@PostMapping("/users/chauffeurs")
-	public ResponseEntity<String> createChauffeur(@Valid @RequestBody ChauffeurBean chauffeurBean) {
+	public ResponseEntity<ChauffeurBean> createChauffeur(@Valid @RequestBody ChauffeurBean chauffeurBean) {
 		String phone = chauffeurBean.getCountryCode() != null
 				? chauffeurBean.getCountryCode() + chauffeurBean.getPhone()
 				: chauffeurBean.getPhone();
-		chauffeurService.createChauffeur(phone, CommonConstants.UserTypes.CHAUFFEUR, chauffeurBean);
-		return ResponseEntity.status(HttpStatus.CREATED).body("Chauffeur Created Successfully");
+		ChauffeurEntity chauffeur = chauffeurService.createChauffeur(phone, CommonConstants.UserTypes.CHAUFFEUR, chauffeurBean);
+		return ResponseEntity.status(HttpStatus.CREATED).body(getMapper().mapSrcToDest(chauffeur, ChauffeurBean.newInstance()));
 	}
 
 	@ApiOperation(value = "List all Chauffeurs paginated", nickname = "findChauffeurListPaginated")
