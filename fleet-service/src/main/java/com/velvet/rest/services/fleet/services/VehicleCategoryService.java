@@ -25,12 +25,10 @@ public class VehicleCategoryService implements BaseService<VehicleCategoryEntity
 	@Autowired
 	private VehicleCategoryRepository vehicleCategoryRepository;
 
-	@Transactional(readOnly = true)
 	public List<VehicleCategoryEntity> getAllCategories() {
 		return vehicleCategoryRepository.findAllActive();
 	}
 
-	@Transactional(readOnly = true)
 	public VehicleCategoryEntity getById(Long id) {
 		return findRecordById(id);
 	}

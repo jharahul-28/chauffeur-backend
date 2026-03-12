@@ -22,9 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.velvet.rest.common.websupport.base.BaseController;
 import com.velvet.rest.services.common.mapper.BaseMapper;
+import com.velvet.rest.services.fleet.beans.VehicleBean;
 import com.velvet.rest.services.fleet.beans.VehicleCategoryBean;
 import com.velvet.rest.services.fleet.entity.VehicleCategoryEntity;
+import com.velvet.rest.services.fleet.entity.VehicleEntity;
 import com.velvet.rest.services.fleet.services.VehicleCategoryService;
+import com.velvet.rest.services.fleet.services.VehicleService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -40,6 +43,9 @@ public class VehicleCategoryController implements BaseController {
 
 	@Autowired
 	private VehicleCategoryService vehicleCategoryService;
+
+	@Autowired
+	private VehicleService vehicleService;
 
 	@Autowired
 	private BaseMapper<?, ?> categoryMapper;
@@ -79,6 +85,13 @@ public class VehicleCategoryController implements BaseController {
 	@PatchMapping("/fleet/categories/{id}/toggle-status")
 	public ResponseEntity<VehicleCategoryBean> toggleCategoryStatus(@PathVariable Long id) {
 		return ResponseEntity.ok(getMapper().mapSrcToDest(vehicleCategoryService.toggleCategoryStatus(id), VehicleCategoryBean.newInstance()));
+	}
+
+	@ApiOperation(value = "Get all vehicles in a category", nickname = "getVehiclesByCategory")
+	@GetMapping("/fleet/categories/{id}/vehicles")
+	public ResponseEntity<List<VehicleBean>> getVehiclesByCategory(@PathVariable Long id) {
+		List<VehicleEntity> vehicles = vehicleService.getByCategory(id);
+		return ResponseEntity.ok(getMapper().mapAsList(vehicles, VehicleBean.class));
 	}
 
 	@Override
