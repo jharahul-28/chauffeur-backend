@@ -15,6 +15,8 @@ import javax.persistence.Table;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import com.velvet.rest.common.websupport.base.BaseEntity;
 import com.velvet.rest.services.fleet.beans.VehicleBean;
 
@@ -46,6 +48,7 @@ public class VehicleEntity extends BaseEntity implements VehicleConstants {
 	@Column(name = "category_id", nullable = false, updatable = false, insertable = false)
 	private Long categoryId;
 
+	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "category_id", nullable = false)
 	private VehicleCategoryEntity category;
