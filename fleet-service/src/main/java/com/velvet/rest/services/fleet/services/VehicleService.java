@@ -1,6 +1,8 @@
 package com.velvet.rest.services.fleet.services;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,7 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.velvet.rest.common.beans.ErrorBean;
 import com.velvet.rest.common.dbsupport.crud.BaseCrudRepository;
+import com.velvet.rest.common.dbsupport.pagination.PageAndSortRequest.SortDirection;
+import com.velvet.rest.common.dbsupport.pagination.PageAndSortResult;
 import com.velvet.rest.common.exceptions.ValidationException;
+import com.velvet.rest.common.utils.CollectionUtils;
 import com.velvet.rest.common.websupport.base.BaseService;
 import com.velvet.rest.services.fleet.beans.VehicleBean;
 import com.velvet.rest.services.fleet.entity.VehicleCategoryEntity;
@@ -39,16 +44,27 @@ public class VehicleService implements BaseService<VehicleEntity> {
 		return vehicleRepository.findByCategoryId(categoryId);
 	}
 
+	public PageAndSortResult<VehicleEntity> findAllByPage(Integer pageSize, Integer pageNo, Map<String, Object> filters, Map<String, SortDirection> sort) {
+		if (CollectionUtils.isEmpty(filters)) {
+			filters = new HashMap<>();
+		}
+		try {
+			return findPagedRecords(filters, sort, pageSize, pageNo);
+		} catch (Exception e) {
+			throw new ValidationException(ErrorBean.withError("FETCH_ERROR", e.getMessage(), null));
+		}
+	}
+
 	@Transactional(propagation = Propagation.REQUIRED)
 	public VehicleEntity createVehicle(VehicleBean vehicleBean) {
 		VehicleCategoryEntity vehicleCategory = vehicleCategoryRepository.findById(vehicleBean.getCategoryId())
 				.orElseThrow(() -> new ValidationException(
 						ErrorBean.withError(AppErrors.CATEGORY_NOT_FOUND, "Vehicle category not found", "categoryId")));
-		if (category.getActive() != 1) {
+		if (vehicleCategory.getActive() != 1) {
 			throw new ValidationException(
 					ErrorBean.withError(AppErrors.CATEGORY_INACTIVE, "Vehicle category is inactive", "categoryId"));
 		}
-		return vehicleRepository.save(VehicleEntity.newInstance().createNewVehicle(bean, category));
+		return vehicleRepository.save(VehicleEntity.newInstance().createNewVehicle(vehicleBean, vehicleCategory));
 	}
 
 	@Override
