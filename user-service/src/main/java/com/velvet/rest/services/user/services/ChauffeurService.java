@@ -16,6 +16,7 @@ import com.velvet.rest.common.utils.CollectionUtils;
 import com.velvet.rest.common.utils.ParamsUtils;
 import com.velvet.rest.common.websupport.base.BaseService;
 import com.velvet.rest.services.user.beans.ChauffeurBean;
+import com.velvet.rest.services.user.beans.ChauffeurUpdateRequest;
 import com.velvet.rest.services.user.entity.ChauffeurEntity;
 import com.velvet.rest.services.user.repository.ChauffeurRepository;
 
@@ -62,6 +63,34 @@ public class ChauffeurService implements UserService, BaseService<ChauffeurEntit
 
 	public Boolean verifyOtp(Long userId, String phone, String otp) {
 		return otpService.verifyPhoneOtp(userId, phone, otp);
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	public ChauffeurEntity updateChauffeur(Long id, ChauffeurUpdateRequest request) {
+		ChauffeurEntity chauffeur = findById(id);
+		if (chauffeur == null) {
+			throw new ValidationException(ErrorBean.withError("USER_NOT_FOUND", "Chauffeur not found", "id"));
+		}
+		chauffeur.setFirstName(request.getFirstName());
+		chauffeur.setLastName(request.getLastName());
+		chauffeur.setEmail(request.getEmail());
+		chauffeur.setGender(request.getGender());
+		if (request.getLicenseNumber() != null) {
+			chauffeur.setLicenseNumber(request.getLicenseNumber());
+		}
+		if (request.getDateOfBirth() != null) {
+			chauffeur.setDateOfBirth(request.getDateOfBirth());
+		}
+		if (request.getDocuments() != null) {
+			chauffeur.setDocuments(request.getDocuments());
+		}
+		if (request.getRating() != null) {
+			chauffeur.setRating(request.getRating());
+		}
+		if (request.getMetadata() != null && request.getMetadata().getWorkingHours() != null) {
+			chauffeur.getMetadata().setWorkingHours(request.getMetadata().getWorkingHours());
+		}
+		return save(chauffeur);
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)

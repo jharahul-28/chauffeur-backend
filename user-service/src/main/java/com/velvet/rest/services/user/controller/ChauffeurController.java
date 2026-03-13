@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +25,7 @@ import com.velvet.rest.common.websupport.base.BaseController;
 import com.velvet.rest.services.common.mapper.BaseMapper;
 import com.velvet.rest.services.user.beans.ChauffeurBean;
 import com.velvet.rest.services.user.beans.ChauffeurProfileBean;
+import com.velvet.rest.services.user.beans.ChauffeurUpdateRequest;
 import com.velvet.rest.services.user.entity.ChauffeurEntity;
 import com.velvet.rest.services.user.errors.AppErrors;
 import com.velvet.rest.services.user.services.ChauffeurService;
@@ -118,6 +120,14 @@ public class ChauffeurController implements BaseController {
 			chauffeurService.logoutById(id);
 		}
 		return ResponseEntity.ok(isBlocked == false ? "Chauffeur Blocked Successfully" : "Chauffeur Unblocked Successfully");
+	}
+
+	//UPDATE CHAUFFEUR -> ADMIN PORTAL
+	@ApiOperation(value = "Update a Chauffeur", nickname = "updateChauffeur")
+	@PutMapping("/users/chauffeurs/{id}")
+	public ResponseEntity<ChauffeurBean> updateChauffeur(@PathVariable Long id, @Valid @RequestBody ChauffeurUpdateRequest request) {
+		ChauffeurEntity chauffeur = chauffeurService.updateChauffeur(id, request);
+		return ResponseEntity.ok(getMapper().mapSrcToDest(chauffeur, ChauffeurBean.newInstance()));
 	}
 
 	@Override
