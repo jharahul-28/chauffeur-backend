@@ -46,6 +46,9 @@ public class VehicleBean implements Serializable {
 	@ApiModelProperty(value = "Vehicle metadata")
 	private VehicleMetadata metadata;
 
+	@ApiModelProperty(value = "URL of the vehicle image")
+	private String imageUrl;
+
 	public static VehicleBean newInstance() {
 		return new VehicleBean();
 	}

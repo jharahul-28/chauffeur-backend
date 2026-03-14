@@ -51,4 +51,7 @@ public class VehicleUpdateRequest implements Serializable {
 
 	@ApiModelProperty(value = "Vehicle metadata (registration, insurance, PUC expiry dates)")
 	private VehicleMetadata metadata;
+
+	@ApiModelProperty(value = "URL of the vehicle image")
+	private String imageUrl;
 }

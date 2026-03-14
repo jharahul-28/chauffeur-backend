@@ -22,12 +22,12 @@ import com.velvet.rest.common.dbsupport.pagination.PageAndSortResult;
 import com.velvet.rest.common.exceptions.ValidationException;
 import com.velvet.rest.services.fleet.entity.VehicleEntity;
 import com.velvet.rest.services.fleet.errors.AppErrors;
-
 import com.velvet.rest.common.websupport.base.BaseController;
 import com.velvet.rest.services.common.mapper.BaseMapper;
 import com.velvet.rest.services.fleet.beans.VehicleBean;
 import com.velvet.rest.services.fleet.beans.VehicleUpdateRequest;
-import com.velvet.rest.services.fleet.entity.VehicleEntity;
+import com.velvet.rest.services.fleet.beans.ImagePresignedUrlResponse;
+import com.velvet.rest.services.fleet.services.FleetImageUploadService;
 import com.velvet.rest.services.fleet.services.VehicleService;
 
 import io.swagger.annotations.Api;
@@ -44,6 +44,9 @@ public class VehicleController implements BaseController {
 
 	@Autowired
 	private VehicleService vehicleService;
+
+	@Autowired
+	private FleetImageUploadService fleetImageUploadService;
 
 	@Autowired
 	private BaseMapper<?, ?> vehicleMapper;
@@ -81,6 +84,12 @@ public class VehicleController implements BaseController {
 			response = prepareResponsePageData(results, VehicleBean.class);
 		}
 		return response;
+	}
+
+	@ApiOperation(value = "Get presigned URL for vehicle image upload", nickname = "getVehicleImagePresignedUrl")
+	@GetMapping("/fleet/vehicles/{id}/image/presigned-url")
+	public ResponseEntity<ImagePresignedUrlResponse> getVehicleImagePresignedUrl(@PathVariable Long id, @RequestParam String fileName) {
+		return ResponseEntity.ok(fleetImageUploadService.getPresignedUrlForVehicle(id, fileName));
 	}
 
 	@ApiOperation(value = "Update a vehicle", nickname = "updateVehicle")

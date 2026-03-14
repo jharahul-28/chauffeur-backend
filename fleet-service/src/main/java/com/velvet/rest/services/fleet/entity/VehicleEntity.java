@@ -74,6 +74,9 @@ public class VehicleEntity extends BaseEntity implements VehicleConstants {
 	@Column(name = "metadata", columnDefinition = "jsonb")
 	private VehicleMetadata metadata = new VehicleMetadata();
 
+	@Column(name = "image_url")
+	private String imageUrl;
+
 	public static VehicleEntity newInstance() {
 		return new VehicleEntity();
 	}

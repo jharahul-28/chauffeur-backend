@@ -25,6 +25,9 @@ public class VehicleCategoryBean implements Serializable {
 	@ApiModelProperty(value = "Active status of the vehicle category")
 	private Integer active;
 
+	@ApiModelProperty(value = "URL of the vehicle category image")
+	private String imageUrl;
+
 	public static VehicleCategoryBean newInstance() {
 		return new VehicleCategoryBean();
 	}

@@ -19,10 +19,8 @@ import com.velvet.rest.common.utils.CollectionUtils;
 import com.velvet.rest.common.websupport.base.BaseService;
 import com.velvet.rest.services.fleet.beans.VehicleBean;
 import com.velvet.rest.services.fleet.beans.VehicleUpdateRequest;
-import com.velvet.rest.services.fleet.entity.VehicleCategoryEntity;
 import com.velvet.rest.services.fleet.entity.VehicleEntity;
 import com.velvet.rest.services.fleet.errors.AppErrors;
-import com.velvet.rest.services.fleet.repository.VehicleCategoryRepository;
 import com.velvet.rest.services.fleet.repository.VehicleRepository;
 
 /**
@@ -35,7 +33,7 @@ public class VehicleService implements BaseService<VehicleEntity> {
 	private VehicleRepository vehicleRepository;
 
 	@Autowired
-	private VehicleCategoryRepository vehicleCategoryRepository;
+	private VehicleCategoryService vehicleCategoryService;
 
 	
 	public VehicleEntity getById(Long id) {
@@ -63,7 +61,7 @@ public class VehicleService implements BaseService<VehicleEntity> {
 				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.VEHICLE_NOT_FOUND, "Vehicle not found", "id")));
 				
 		if (request.getCategoryId() != null && ObjectUtils.notEqual(request.getCategoryId(), vehicle.getCategoryId())) {
-			vehicle.setCategory(validateCategory(request.getCategoryId()));
+			vehicle.setCategory(vehicleCategoryService.validateCategory(request.getCategoryId()));
 		}
 		vehicle.setVehicleNumber(request.getVehicleNumber());
 		vehicle.setBrand(request.getBrand());
@@ -77,21 +75,15 @@ public class VehicleService implements BaseService<VehicleEntity> {
 		if (request.getMetadata() != null) {
 			vehicle.setMetadata(request.getMetadata());
 		}
+		if (request.getImageUrl() != null) {
+			vehicle.setImageUrl(request.getImageUrl());
+		}
 		return vehicleRepository.save(vehicle);
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
 	public VehicleEntity createVehicle(VehicleBean vehicleBean) {
-		return vehicleRepository.save(VehicleEntity.newInstance().createNewVehicle(vehicleBean, validateCategory(vehicleBean.getCategoryId())));
-	}
-
-	private VehicleCategoryEntity validateCategory(Long categoryId) {
-		VehicleCategoryEntity category = vehicleCategoryRepository.findById(categoryId)
-				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.CATEGORY_NOT_FOUND, "Vehicle category not found", "categoryId")));
-		if (category.getActive() != 1) {
-			throw new ValidationException(ErrorBean.withError(AppErrors.CATEGORY_INACTIVE, "Vehicle category is inactive", "categoryId"));
-		}
-		return category;
+		return vehicleRepository.save(VehicleEntity.newInstance().createNewVehicle(vehicleBean, vehicleCategoryService.validateCategory(vehicleBean.getCategoryId())));
 	}
 
 	@Override

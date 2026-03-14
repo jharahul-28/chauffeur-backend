@@ -15,17 +15,24 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.velvet.rest.common.beans.ErrorBean;
+import com.velvet.rest.common.exceptions.ValidationException;
 import com.velvet.rest.common.websupport.base.BaseController;
 import com.velvet.rest.services.common.mapper.BaseMapper;
+import com.velvet.rest.services.fleet.beans.ImagePresignedUrlResponse;
 import com.velvet.rest.services.fleet.beans.VehicleBean;
 import com.velvet.rest.services.fleet.beans.VehicleCategoryBean;
+import com.velvet.rest.services.fleet.beans.VehicleCategoryCreateRequest;
+import com.velvet.rest.services.fleet.beans.VehicleCategoryUpdateRequest;
 import com.velvet.rest.services.fleet.entity.VehicleCategoryEntity;
 import com.velvet.rest.services.fleet.entity.VehicleEntity;
+import com.velvet.rest.services.fleet.errors.AppErrors;
+import com.velvet.rest.services.fleet.services.FleetImageUploadService;
 import com.velvet.rest.services.fleet.services.VehicleCategoryService;
 import com.velvet.rest.services.fleet.services.VehicleService;
 
@@ -45,6 +52,9 @@ public class VehicleCategoryController implements BaseController {
 	private VehicleCategoryService vehicleCategoryService;
 
 	@Autowired
+	private FleetImageUploadService fleetImageUploadService;
+
+	@Autowired
 	private VehicleService vehicleService;
 
 	@Autowired
@@ -62,16 +72,15 @@ public class VehicleCategoryController implements BaseController {
 	public ResponseEntity<VehicleCategoryBean> getCategoryById(@PathVariable Long id) {
 		VehicleCategoryEntity category = vehicleCategoryService.getById(id);
 		if (category == null) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+			throw new ValidationException(ErrorBean.withError(AppErrors.CATEGORY_NOT_FOUND, "Category not found", "id"));
 		}
 		return ResponseEntity.ok(getMapper().mapSrcToDest(category, VehicleCategoryBean.newInstance()));
 	}
 
 	@ApiOperation(value = "Create a new vehicle category", nickname = "createVehicleCategory")
 	@PostMapping("/fleet/categories")
-	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<VehicleCategoryBean> createCategory(@Valid @RequestBody VehicleCategoryEntity category) {
-		VehicleCategoryEntity created = vehicleCategoryService.createCategory(category);
+	public ResponseEntity<VehicleCategoryBean> createCategory(@Valid @RequestBody VehicleCategoryCreateRequest request) {
+		VehicleCategoryEntity created = vehicleCategoryService.createCategory(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(getMapper().mapSrcToDest(created, VehicleCategoryBean.newInstance()));
 	}
 
@@ -85,6 +94,19 @@ public class VehicleCategoryController implements BaseController {
 	@PatchMapping("/fleet/categories/{id}/toggle-status")
 	public ResponseEntity<VehicleCategoryBean> toggleCategoryStatus(@PathVariable Long id) {
 		return ResponseEntity.ok(getMapper().mapSrcToDest(vehicleCategoryService.toggleCategoryStatus(id), VehicleCategoryBean.newInstance()));
+	}
+
+	@ApiOperation(value = "Get presigned URL for category image upload", nickname = "getCategoryImagePresignedUrl")
+	@GetMapping("/fleet/categories/{id}/image/presigned-url")
+	public ResponseEntity<ImagePresignedUrlResponse> getCategoryImagePresignedUrl(@PathVariable Long id, @RequestParam String fileName) {
+		return ResponseEntity.ok(fleetImageUploadService.getPresignedUrlForCategory(id, fileName));
+	}
+
+	@ApiOperation(value = "Update a vehicle category", nickname = "updateVehicleCategory")
+	@PutMapping("/fleet/categories/{id}")
+	public ResponseEntity<VehicleCategoryBean> updateCategory(@PathVariable Long id, @Valid @RequestBody VehicleCategoryUpdateRequest request) {
+		VehicleCategoryEntity category = vehicleCategoryService.updateCategory(id, request);
+		return ResponseEntity.ok(getMapper().mapSrcToDest(category, VehicleCategoryBean.newInstance()));
 	}
 
 	@ApiOperation(value = "Get all vehicles in a category", nickname = "getVehiclesByCategory")
