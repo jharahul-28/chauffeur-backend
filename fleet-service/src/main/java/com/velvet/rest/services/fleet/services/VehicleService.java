@@ -19,6 +19,7 @@ import com.velvet.rest.common.utils.CollectionUtils;
 import com.velvet.rest.common.websupport.base.BaseService;
 import com.velvet.rest.services.fleet.beans.VehicleBean;
 import com.velvet.rest.services.fleet.beans.VehicleUpdateRequest;
+import com.velvet.rest.services.fleet.entity.VehicleCategoryEntity;
 import com.velvet.rest.services.fleet.entity.VehicleEntity;
 import com.velvet.rest.services.fleet.errors.AppErrors;
 import com.velvet.rest.services.fleet.repository.VehicleRepository;
@@ -61,7 +62,9 @@ public class VehicleService implements BaseService<VehicleEntity> {
 				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.VEHICLE_NOT_FOUND, "Vehicle not found", "id")));
 				
 		if (request.getCategoryId() != null && ObjectUtils.notEqual(request.getCategoryId(), vehicle.getCategoryId())) {
-			vehicle.setCategory(vehicleCategoryService.validateCategory(request.getCategoryId()));
+			VehicleCategoryEntity newCategory = vehicleCategoryService.validateCategory(request.getCategoryId());
+			vehicle.setCategory(newCategory);
+			vehicle.setCategoryId(newCategory.getId());
 		}
 		vehicle.setVehicleNumber(request.getVehicleNumber());
 		vehicle.setBrand(request.getBrand());

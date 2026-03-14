@@ -45,6 +45,9 @@ public class VehicleEntity extends BaseEntity implements VehicleConstants {
 	@Column(name = "vehicle_number", nullable = false, unique = true)
 	private String vehicleNumber;
 
+	@Column(name = "category_id", nullable = false, insertable = false, updatable = false)
+	private Long categoryId;
+
 	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "category_id", nullable = false)
@@ -84,6 +87,7 @@ public class VehicleEntity extends BaseEntity implements VehicleConstants {
 	public VehicleEntity createNewVehicle(VehicleBean bean, VehicleCategoryEntity category) {
 		this.setVehicleNumber(bean.getVehicleNumber());
 		this.setCategory(category);
+		this.setCategoryId(category.getId());
 		this.setBrand(bean.getBrand());
 		this.setModel(bean.getModel());
 		this.setSeatingCapacity(bean.getSeatingCapacity());
@@ -94,7 +98,4 @@ public class VehicleEntity extends BaseEntity implements VehicleConstants {
 		return this;
 	}
 
-	public Long getCategoryId() {
-		return category != null ? category.getId() : null;
-	}
 }
