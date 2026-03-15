@@ -42,6 +42,10 @@ public class BaseMapper<S, D> {
 		}
 	}
 
+	public <T> T convertMap(Map<String, Object> map, Class<T> clazz) {
+		return jacksonMapper.convertValue(map, clazz);
+	}
+
 	@SuppressWarnings("hiding")
 	public <D> D copyNullAwareMapProp(@SuppressWarnings("rawtypes") Map map, D dest) {
 		final BeanWrapper trg = new BeanWrapperImpl(dest);
