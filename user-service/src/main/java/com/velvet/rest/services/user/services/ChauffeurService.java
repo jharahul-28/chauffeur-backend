@@ -16,7 +16,6 @@ import com.velvet.rest.common.utils.CollectionUtils;
 import com.velvet.rest.common.utils.ParamsUtils;
 import com.velvet.rest.common.websupport.base.BaseService;
 import com.velvet.rest.services.user.beans.ChauffeurBean;
-import com.velvet.rest.services.user.beans.ChauffeurUpdateRequest;
 import com.velvet.rest.services.user.entity.ChauffeurEntity;
 import com.velvet.rest.services.user.repository.ChauffeurRepository;
 
@@ -66,7 +65,7 @@ public class ChauffeurService implements UserService, BaseService<ChauffeurEntit
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	public ChauffeurEntity updateChauffeur(Long id, ChauffeurUpdateRequest request) {
+	public ChauffeurEntity updateChauffeur(Long id, ChauffeurBean request) {
 		ChauffeurEntity chauffeur = findById(id);
 		if (chauffeur == null) {
 			throw new ValidationException(ErrorBean.withError("USER_NOT_FOUND", "Chauffeur not found", "id"));

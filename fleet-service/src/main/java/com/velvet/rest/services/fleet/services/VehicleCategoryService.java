@@ -12,8 +12,7 @@ import com.velvet.rest.common.beans.ErrorBean;
 import com.velvet.rest.common.dbsupport.crud.BaseCrudRepository;
 import com.velvet.rest.common.exceptions.ValidationException;
 import com.velvet.rest.common.websupport.base.BaseService;
-import com.velvet.rest.services.fleet.beans.VehicleCategoryCreateRequest;
-import com.velvet.rest.services.fleet.beans.VehicleCategoryUpdateRequest;
+import com.velvet.rest.services.fleet.beans.VehicleCategoryBean;
 import com.velvet.rest.services.fleet.entity.VehicleCategoryEntity;
 import com.velvet.rest.services.fleet.errors.AppErrors;
 import com.velvet.rest.services.fleet.repository.VehicleCategoryRepository;
@@ -45,7 +44,7 @@ public class VehicleCategoryService implements BaseService<VehicleCategoryEntity
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	public VehicleCategoryEntity createCategory(VehicleCategoryCreateRequest request) {
+	public VehicleCategoryEntity createCategory(VehicleCategoryBean request) {
 		VehicleCategoryEntity category = new VehicleCategoryEntity();
 		category.setCategoryName(request.getCategoryName());
 		category.setBasePrice(request.getBasePrice());
@@ -54,7 +53,7 @@ public class VehicleCategoryService implements BaseService<VehicleCategoryEntity
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	public VehicleCategoryEntity updateCategory(Long id, VehicleCategoryUpdateRequest request) {
+	public VehicleCategoryEntity updateCategory(Long id, VehicleCategoryBean request) {
 		VehicleCategoryEntity category = vehicleCategoryRepository.findById(id)
 				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.CATEGORY_NOT_FOUND, "Category not found", "id")));
 		category.setCategoryName(request.getCategoryName());

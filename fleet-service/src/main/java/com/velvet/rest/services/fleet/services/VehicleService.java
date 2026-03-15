@@ -18,7 +18,6 @@ import com.velvet.rest.common.exceptions.ValidationException;
 import com.velvet.rest.common.utils.CollectionUtils;
 import com.velvet.rest.common.websupport.base.BaseService;
 import com.velvet.rest.services.fleet.beans.VehicleBean;
-import com.velvet.rest.services.fleet.beans.VehicleUpdateRequest;
 import com.velvet.rest.services.fleet.entity.VehicleCategoryEntity;
 import com.velvet.rest.services.fleet.entity.VehicleEntity;
 import com.velvet.rest.services.fleet.errors.AppErrors;
@@ -57,7 +56,7 @@ public class VehicleService implements BaseService<VehicleEntity> {
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	public VehicleEntity updateVehicle(Long id, VehicleUpdateRequest request) {
+	public VehicleEntity updateVehicle(Long id, VehicleBean request) {
 		VehicleEntity vehicle = vehicleRepository.findById(id)
 				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.VEHICLE_NOT_FOUND, "Vehicle not found", "id")));
 				

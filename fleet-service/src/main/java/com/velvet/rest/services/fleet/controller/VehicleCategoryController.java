@@ -27,8 +27,6 @@ import com.velvet.rest.services.common.mapper.BaseMapper;
 import com.velvet.rest.services.fleet.beans.ImagePresignedUrlResponse;
 import com.velvet.rest.services.fleet.beans.VehicleBean;
 import com.velvet.rest.services.fleet.beans.VehicleCategoryBean;
-import com.velvet.rest.services.fleet.beans.VehicleCategoryCreateRequest;
-import com.velvet.rest.services.fleet.beans.VehicleCategoryUpdateRequest;
 import com.velvet.rest.services.fleet.entity.VehicleCategoryEntity;
 import com.velvet.rest.services.fleet.entity.VehicleEntity;
 import com.velvet.rest.services.fleet.errors.AppErrors;
@@ -79,7 +77,7 @@ public class VehicleCategoryController implements BaseController {
 
 	@ApiOperation(value = "Create a new vehicle category", nickname = "createVehicleCategory")
 	@PostMapping("/fleet/categories")
-	public ResponseEntity<VehicleCategoryBean> createCategory(@Valid @RequestBody VehicleCategoryCreateRequest request) {
+	public ResponseEntity<VehicleCategoryBean> createCategory(@Valid @RequestBody VehicleCategoryBean request) {
 		VehicleCategoryEntity created = vehicleCategoryService.createCategory(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(getMapper().mapSrcToDest(created, VehicleCategoryBean.newInstance()));
 	}
@@ -104,7 +102,7 @@ public class VehicleCategoryController implements BaseController {
 
 	@ApiOperation(value = "Update a vehicle category", nickname = "updateVehicleCategory")
 	@PutMapping("/fleet/categories/{id}")
-	public ResponseEntity<VehicleCategoryBean> updateCategory(@PathVariable Long id, @Valid @RequestBody VehicleCategoryUpdateRequest request) {
+	public ResponseEntity<VehicleCategoryBean> updateCategory(@PathVariable Long id, @Valid @RequestBody VehicleCategoryBean request) {
 		VehicleCategoryEntity category = vehicleCategoryService.updateCategory(id, request);
 		return ResponseEntity.ok(getMapper().mapSrcToDest(category, VehicleCategoryBean.newInstance()));
 	}

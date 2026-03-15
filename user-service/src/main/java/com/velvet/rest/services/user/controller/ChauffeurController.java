@@ -25,7 +25,6 @@ import com.velvet.rest.common.websupport.base.BaseController;
 import com.velvet.rest.services.common.mapper.BaseMapper;
 import com.velvet.rest.services.user.beans.ChauffeurBean;
 import com.velvet.rest.services.user.beans.ChauffeurProfileBean;
-import com.velvet.rest.services.user.beans.ChauffeurUpdateRequest;
 import com.velvet.rest.services.user.entity.ChauffeurEntity;
 import com.velvet.rest.services.user.errors.AppErrors;
 import com.velvet.rest.services.user.services.ChauffeurService;
@@ -125,7 +124,7 @@ public class ChauffeurController implements BaseController {
 	//UPDATE CHAUFFEUR -> ADMIN PORTAL
 	@ApiOperation(value = "Update a Chauffeur", nickname = "updateChauffeur")
 	@PutMapping("/users/chauffeurs/{id}")
-	public ResponseEntity<ChauffeurBean> updateChauffeur(@PathVariable Long id, @Valid @RequestBody ChauffeurUpdateRequest request) {
+	public ResponseEntity<ChauffeurBean> updateChauffeur(@PathVariable Long id, @Valid @RequestBody ChauffeurBean request) {
 		ChauffeurEntity chauffeur = chauffeurService.updateChauffeur(id, request);
 		return ResponseEntity.ok(getMapper().mapSrcToDest(chauffeur, ChauffeurBean.newInstance()));
 	}

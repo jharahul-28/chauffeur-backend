@@ -25,7 +25,6 @@ import com.velvet.rest.services.fleet.errors.AppErrors;
 import com.velvet.rest.common.websupport.base.BaseController;
 import com.velvet.rest.services.common.mapper.BaseMapper;
 import com.velvet.rest.services.fleet.beans.VehicleBean;
-import com.velvet.rest.services.fleet.beans.VehicleUpdateRequest;
 import com.velvet.rest.services.fleet.beans.ImagePresignedUrlResponse;
 import com.velvet.rest.services.fleet.services.FleetImageUploadService;
 import com.velvet.rest.services.fleet.services.VehicleService;
@@ -94,7 +93,7 @@ public class VehicleController implements BaseController {
 
 	@ApiOperation(value = "Update a vehicle", nickname = "updateVehicle")
 	@PutMapping("/fleet/vehicles/{id}")
-	public ResponseEntity<VehicleBean> updateVehicle(@PathVariable Long id, @Valid @RequestBody VehicleUpdateRequest request) {
+	public ResponseEntity<VehicleBean> updateVehicle(@PathVariable Long id, @Valid @RequestBody VehicleBean request) {
 		VehicleEntity vehicle = vehicleService.updateVehicle(id, request);
 		return ResponseEntity.ok(getMapper().mapSrcToDest(vehicle, VehicleBean.newInstance()));
 	}
