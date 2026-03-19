@@ -13,5 +13,5 @@ import com.velvet.rest.services.fleet.entity.VehicleEntity;
 @Repository
 public interface VehicleRepository extends BaseCrudRepository<VehicleEntity, Long> {
 
-	List<VehicleEntity> findByCategoryId(Long categoryId);
+	List<VehicleEntity> findByCategory_Id(Long categoryId);
 }

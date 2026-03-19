@@ -42,6 +42,9 @@ public class VehicleCategoryEntity extends BaseEntity implements Serializable, V
 	@Column(name = "base_price", nullable = false, precision = 10, scale = 2)
 	private BigDecimal basePrice;
 
+	@Column(name = "image_url")
+	private String imageUrl;
+
 	public static VehicleCategoryEntity newInstance() {
 		return new VehicleCategoryEntity();
 	}
