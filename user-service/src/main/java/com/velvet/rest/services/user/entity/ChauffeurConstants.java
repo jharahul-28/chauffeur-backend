@@ -6,4 +6,11 @@ package com.velvet.rest.services.user.entity;
 public interface ChauffeurConstants {
 
 	String CHAUFFEUR_TABLE_NAME = "chauffeurs";
+
+	enum MaritalStatus {
+		SINGLE,
+		MARRIED,
+		DIVORCED,
+		WIDOWED
+	}
 }

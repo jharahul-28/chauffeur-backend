@@ -12,6 +12,8 @@ import com.velvet.rest.common.dbsupport.crud.BaseCrudRepository;
 import com.velvet.rest.common.dbsupport.pagination.PageAndSortRequest.SortDirection;
 import com.velvet.rest.common.dbsupport.pagination.PageAndSortResult;
 import com.velvet.rest.common.exceptions.ValidationException;
+import org.apache.commons.lang3.StringUtils;
+
 import com.velvet.rest.common.utils.CollectionUtils;
 import com.velvet.rest.common.utils.ParamsUtils;
 import com.velvet.rest.common.websupport.base.BaseService;
@@ -86,14 +88,53 @@ public class ChauffeurService implements UserService, BaseService<ChauffeurEntit
 		if (request.getRating() != null) {
 			chauffeur.setRating(request.getRating());
 		}
-		if (request.getMetadata() != null && request.getMetadata().getWorkingHours() != null) {
-			chauffeur.getMetadata().setWorkingHours(request.getMetadata().getWorkingHours());
+		if (request.getMaritalStatus() != null) {
+			chauffeur.setMaritalStatus(request.getMaritalStatus());
+		}
+		if (request.getDlExpiryDate() != null) {
+			chauffeur.setDlExpiryDate(request.getDlExpiryDate());
+		}
+		if (request.getHasCriminalRecord() != null) {
+			chauffeur.setHasCriminalRecord(request.getHasCriminalRecord());
+		}
+		if (request.getTotalDrivingExperience() != null) {
+			chauffeur.setTotalDrivingExperience(request.getTotalDrivingExperience());
+		}
+		if (request.getLuxuryDrivingExperience() != null) {
+			chauffeur.setLuxuryDrivingExperience(request.getLuxuryDrivingExperience());
+		}
+		if (request.getAddress() != null) {
+			chauffeur.setAddress(request.getAddress());
+		}
+		if (request.getBankDetails() != null) {
+			chauffeur.setBankDetails(request.getBankDetails());
+		}
+		if (request.getMetadata() != null) {
+			if (request.getMetadata().getWorkingHours() != null) {
+				chauffeur.getMetadata().setWorkingHours(request.getMetadata().getWorkingHours());
+			}
+			if (request.getMetadata().getLuxuryBrandsDriven() != null) {
+				chauffeur.getMetadata().setLuxuryBrandsDriven(request.getMetadata().getLuxuryBrandsDriven());
+			}
 		}
 		return save(chauffeur);
 	}
 
+	public String resolvePhone(String countryCode, String phone) {
+		if (StringUtils.isBlank(phone)) {
+			throw new ValidationException(ErrorBean.withError("INVALID_PHONE", "Phone number is required", "phone"));
+		}
+		return countryCode != null ? countryCode + phone : phone;
+	}
+
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ChauffeurEntity createChauffeur(String phone, String userType, ChauffeurBean chauffeurBean) {
+		if (StringUtils.isBlank(phone)) {
+			throw new ValidationException(ErrorBean.withError("INVALID_PHONE", "Phone number is required", "phone"));
+		}
+		if (findByPhone(phone) != null) {
+			throw new ValidationException(ErrorBean.withError("PHONE_ALREADY_EXISTS", "A chauffeur with this phone number already exists", "phone"));
+		}
 		ChauffeurEntity chauffeur = userService.registerUser(phone, userType, ChauffeurEntity.newInstance());
 		chauffeur.setAllowedSessions(ParamsUtils.getIntegerParam("CHAUFFEUR_ALLOWED_SESSIONS", 1));
 		chauffeur = save(chauffeur);

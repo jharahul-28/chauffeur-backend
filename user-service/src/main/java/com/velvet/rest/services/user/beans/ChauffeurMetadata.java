@@ -1,6 +1,8 @@
 package com.velvet.rest.services.user.beans;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -15,4 +17,6 @@ public class ChauffeurMetadata implements Serializable {
 	private Integer numberOfRides = 0;
 
 	private Double workingHours = 0.0;
+
+	private List<String> luxuryBrandsDriven = new ArrayList<>();
 }

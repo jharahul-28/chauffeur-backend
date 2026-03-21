@@ -41,6 +41,8 @@ public class ChauffeurController implements BaseController {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChauffeurController.class);
 
+	private static final String USER_TYPE = CommonConstants.UserTypes.CHAUFFEUR;
+
 	@Autowired
 	private ChauffeurService chauffeurService;
 
@@ -51,10 +53,8 @@ public class ChauffeurController implements BaseController {
 	@ApiOperation(value = "Create a new Chauffeur", nickname = "createChauffeur")
 	@PostMapping("/users/chauffeurs")
 	public ResponseEntity<ChauffeurBean> createChauffeur(@Valid @RequestBody ChauffeurBean chauffeurBean) {
-		String phone = chauffeurBean.getCountryCode() != null
-				? chauffeurBean.getCountryCode() + chauffeurBean.getPhone()
-				: chauffeurBean.getPhone();
-		ChauffeurEntity chauffeur = chauffeurService.createChauffeur(phone, CommonConstants.UserTypes.CHAUFFEUR, chauffeurBean);
+		String phone = chauffeurService.resolvePhone(chauffeurBean.getCountryCode(), chauffeurBean.getPhone());
+		ChauffeurEntity chauffeur = chauffeurService.createChauffeur(phone, USER_TYPE, chauffeurBean);
 		return ResponseEntity.status(HttpStatus.CREATED).body(getMapper().mapSrcToDest(chauffeur, ChauffeurBean.newInstance()));
 	}
 
@@ -124,7 +124,7 @@ public class ChauffeurController implements BaseController {
 	//UPDATE CHAUFFEUR -> ADMIN PORTAL
 	@ApiOperation(value = "Update a Chauffeur", nickname = "updateChauffeur")
 	@PutMapping("/users/chauffeurs/{id}")
-	public ResponseEntity<ChauffeurBean> updateChauffeur(@PathVariable Long id, @Valid @RequestBody ChauffeurBean request) {
+	public ResponseEntity<ChauffeurBean> updateChauffeur(@PathVariable Long id, @RequestBody ChauffeurBean request) {
 		ChauffeurEntity chauffeur = chauffeurService.updateChauffeur(id, request);
 		return ResponseEntity.ok(getMapper().mapSrcToDest(chauffeur, ChauffeurBean.newInstance()));
 	}

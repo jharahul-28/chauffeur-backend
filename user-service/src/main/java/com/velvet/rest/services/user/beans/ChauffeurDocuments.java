@@ -12,10 +12,19 @@ public class ChauffeurDocuments implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private String aadharCard;
+	private String aadharCardFront;
+
+	private String aadharCardBack;
 
 	private String panCard;
 
 	private String license;
 
+	private String policeVerification;
+
+	private String medicalCertificate;
+
+	private String chauffeurPhoto;
+
+	private String bgvCheck;
 }
