@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +22,10 @@ import com.velvet.rest.common.websupport.base.BaseController;
 import com.velvet.rest.services.common.mapper.BaseMapper;
 import com.velvet.rest.services.user.beans.CustomerBean;
 import com.velvet.rest.services.user.beans.AuthResponse;
+import com.velvet.rest.services.user.beans.GoogleUser;
+import com.velvet.rest.services.user.beans.SocialAuth;
+import com.velvet.rest.services.user.entity.AuthUserEntity;
+import com.velvet.rest.services.user.services.AuthUserService;
 import com.velvet.rest.services.user.beans.LoginGenerateOtpRequest;
 import com.velvet.rest.services.user.beans.LoginOtpRequest;
 import com.velvet.rest.services.user.beans.OrgBasicResponse;
@@ -73,6 +78,9 @@ public class CustomerAuthController implements BaseController {
 	@Autowired
 	private EmailService emailService;
 
+	@Autowired
+	private AuthUserService authService;
+
 	private static String USER_TYPE = CommonConstants.UserTypes.CUSTOMER;
 
 	private static ApplicationId APP_ID = ApplicationId.CUSTOMER_APP;
@@ -123,13 +131,46 @@ public class CustomerAuthController implements BaseController {
 		return buildLoginResponse(customer, userId);
 	}
 
+	@ApiOperation(value = "Login/Register Google Oauth2 Service", nickname = "verifyCustomerGoogleOAuth")
+	@PostMapping("/users/customers/auth/google")
+	public AuthResponse googleOAuth(@RequestBody SocialAuth socialAuth) {
+		Assert.notNull(socialAuth.getAuthToken(), "Google OAuth Token cannot be null");
+		logger.info("googleOAuth :: request received: {}", socialAuth.getAuthToken());
+		GoogleUser googleUser = userClientService.getGoogleUser(socialAuth.getAuthToken());
+		if (googleUser == null || googleUser.getEmail() == null) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.USER_NOT_FOUND,
+					"Error while logging via Google. Please try again", "googleUser"));
+		}
+		CustomerEntity customer = null;
+		AuthUserEntity authUser = authService.findByProviderId(googleUser.getId());
+		if (authUser == null) {
+			customer = customerService.findByEmail(googleUser.getEmail());
+			// If customer is null, create a new customer. If customer is not null, link the existing account with google provider id for future logins
+			if (customer == null) {
+				customer = customerService.createCustomerByEmail(googleUser.getEmail(), USER_TYPE);
+				customerService.buildCustomerEntity(googleUser, customer);
+				customerService.save(customer);
+				customerService.generateReferralCode(customer);
+			} 
+			//link the new account/existing account with google provider id for future logins
+			 authUser = authService.linkGoogleProvider(customer.getId(), googleUser.getId());
+		}
+		Long userId = authUser != null ? authUser.getId() : customer.getId();
+		customer = customerService.findById(userId);
+		if (customer != null && customer.getBlocked().equals(true)) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.USER_BLOCKED,
+					"User is blocked. Please contact support.", "blocked"));
+		}
+		return buildLoginResponse(customer, userId);
+	}
+
 	private AuthResponse buildLoginResponse(CustomerEntity customer, Long userId) {
 		Integer allowedSessions = customer.getAllowedSessions();
 		final String authToken = sessionService.doLogin(userId, USER_TYPE, APP_ID, allowedSessions);
 		AuthResponse response = new AuthResponse();
 		response.setAuthToken(authToken);
 		CustomerBean userBean = getMapper().mapSrcToDest(customer, CustomerBean.newInstance());
-		addAddressInCustomerBean(userBean);
+		// addAddressInCustomerBean(userBean);
 		response.setUser(userBean);
 		return response;
 	}
