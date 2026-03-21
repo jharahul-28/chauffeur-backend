@@ -31,6 +31,7 @@ import com.velvet.rest.common.websupport.base.BaseService;
 import com.velvet.rest.services.common.upload.UploadService;
 import com.velvet.rest.services.common.upload.UploadServiceUtil;
 import com.velvet.rest.services.user.beans.CustomerInfoRequest;
+import com.velvet.rest.services.user.beans.GoogleUser;
 import com.velvet.rest.services.user.constants.UserConstants.Gender;
 import com.velvet.rest.services.user.entity.CustomerEntity;
 import com.velvet.rest.services.user.errors.AppErrors;
@@ -120,6 +121,27 @@ public class CustomerService implements UserService, BaseService<CustomerEntity>
 	@Transactional(propagation = Propagation.REQUIRED)
 	public CustomerEntity createCustomer(String phone, String userType) {
 		CustomerEntity customer = (CustomerEntity) userService.registerUser(phone, userType, CustomerEntity.newInstance());
+		customer.setAllowedSessions(ParamsUtils.getIntegerParam("CUSTOMER_ALLOWED_SESSIONS", 2));
+		return save(customer);
+	}
+
+	public CustomerEntity buildCustomerEntity(GoogleUser googleUser, CustomerEntity customer) {
+		String name = ((googleUser.getFirstName() != null ? googleUser.getFirstName() : "") + " "
+				+ (googleUser.getLastName() != null ? googleUser.getLastName() : "")).trim();
+		if (!name.isEmpty()) {
+			customer.setName(name);
+		}
+		customer.setProfilePic(googleUser.getPicture());
+		return customer;
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	public CustomerEntity createCustomerByEmail(String email, String userType) {
+		Long userId = userService.createNewUser(userType);
+		CustomerEntity customer = CustomerEntity.newInstance();
+		customer.setId(userId);
+		customer.setEmail(email);
+		customer.setEmailVerified(true);
 		customer.setAllowedSessions(ParamsUtils.getIntegerParam("CUSTOMER_ALLOWED_SESSIONS", 2));
 		return save(customer);
 	}

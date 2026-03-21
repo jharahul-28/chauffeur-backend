@@ -6,6 +6,8 @@ import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -13,6 +15,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+
+import com.velvet.rest.services.user.constants.UserConstants.ProviderType;
 
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -41,6 +45,13 @@ public class AuthUserEntity extends BaseEntity implements Serializable, AuthUser
 	@Column(name = USER_TYPE)
 	private String userType;
 
+	@Column(name = PROVIDER_ID)
+	private String providerId;
+
+	@Column(name = PROVIDER_TYPE)
+	@Enumerated(EnumType.STRING)
+	private ProviderType providerType;
+
 	@ManyToMany
 	@JoinTable(name = USERS_GROUPS, joinColumns = { @JoinColumn(name = USER_ID) }, inverseJoinColumns = { @JoinColumn(name = GROUP_ID) })
 	Set<GroupEntity> groups = new HashSet<>();
@@ -48,6 +59,14 @@ public class AuthUserEntity extends BaseEntity implements Serializable, AuthUser
 	public static AuthUserEntity newInstance(String userType) {
 		AuthUserEntity entity = new AuthUserEntity();
 		entity.setUserType(userType);
+		return entity;
+	}
+
+	public static AuthUserEntity newInstance(String userType, String providerId, ProviderType providerType) {
+		AuthUserEntity entity = new AuthUserEntity();
+		entity.setUserType(userType);
+		entity.setProviderId(providerId);
+		entity.setProviderType(providerType);
 		return entity;
 	}
 

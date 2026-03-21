@@ -73,6 +73,10 @@ public class UserConstants {
 		EMAIL, PHONE
 	}
 
+	public enum ProviderType {
+		GOOGLE, APPLE
+	}
+
 	public static final String AUTH_PROVIDER_TABLE_NAME = "auth_providers";
 
 }
