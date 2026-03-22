@@ -29,7 +29,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.velvet.rest.services.app</groupId>
-			<artifactId>velvet-agent-service</artifactId>
+			<artifactId>velvet-chat-service</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.velvet.rest.services.app</groupId>

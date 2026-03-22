@@ -65,6 +65,34 @@ public class ChauffeurService implements UserService, BaseService<ChauffeurEntit
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
+	public ChauffeurEntity updateChauffeur(Long id, ChauffeurBean request) {
+		ChauffeurEntity chauffeur = findById(id);
+		if (chauffeur == null) {
+			throw new ValidationException(ErrorBean.withError("USER_NOT_FOUND", "Chauffeur not found", "id"));
+		}
+		chauffeur.setFirstName(request.getFirstName());
+		chauffeur.setLastName(request.getLastName());
+		chauffeur.setEmail(request.getEmail());
+		chauffeur.setGender(request.getGender());
+		if (request.getLicenseNumber() != null) {
+			chauffeur.setLicenseNumber(request.getLicenseNumber());
+		}
+		if (request.getDateOfBirth() != null) {
+			chauffeur.setDateOfBirth(request.getDateOfBirth());
+		}
+		if (request.getDocuments() != null) {
+			chauffeur.setDocuments(request.getDocuments());
+		}
+		if (request.getRating() != null) {
+			chauffeur.setRating(request.getRating());
+		}
+		if (request.getMetadata() != null && request.getMetadata().getWorkingHours() != null) {
+			chauffeur.getMetadata().setWorkingHours(request.getMetadata().getWorkingHours());
+		}
+		return save(chauffeur);
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ChauffeurEntity createChauffeur(String phone, String userType, ChauffeurBean chauffeurBean) {
 		ChauffeurEntity chauffeur = userService.registerUser(phone, userType, ChauffeurEntity.newInstance());
 		chauffeur.setAllowedSessions(ParamsUtils.getIntegerParam("CHAUFFEUR_ALLOWED_SESSIONS", 1));

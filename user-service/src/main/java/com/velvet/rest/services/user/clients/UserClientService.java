@@ -15,6 +15,7 @@ import com.velvet.rest.common.exceptions.ValidationException;
 import com.velvet.rest.common.logging.AppLogger;
 import com.velvet.rest.common.logging.LoggingManager;
 import com.velvet.rest.services.user.beans.FirebaseOTPAuthRequest;
+import com.velvet.rest.services.user.beans.GoogleUser;
 import com.velvet.rest.services.user.beans.OrgAddressResponse;
 import com.velvet.rest.services.user.beans.OrgBasicResponse;
 import com.velvet.rest.services.user.beans.WalletResponse;
@@ -35,6 +36,9 @@ public class UserClientService {
 	private FirebaseClient firebaseClient;
 
 	@Autowired
+	private GoogleClient googleClient;
+
+	@Autowired
 	private OrgServiceClient orgServiceClient;
 
 	@Autowired
@@ -46,6 +50,16 @@ public class UserClientService {
 	@Value("${client.firebase.key}")
 	@Getter
 	private String firebaseApiKey;
+
+	public GoogleUser getGoogleUser(String authToken) {
+		try {
+			ResponseEntity<GoogleUser> response = googleClient.oauth(authToken);
+			return response.getBody();
+		} catch (Exception exc) {
+			_LOGGER.error("UserClientService.getGoogleUser :: Error while verifying google oauth", exc);
+		}
+		return null;
+	}
 
 	public Boolean verifyFirebaseOtp(String verificationId, String otp) {
 		try {

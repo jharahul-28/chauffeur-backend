@@ -18,4 +18,8 @@ public interface AuthUserConstants {
 	String GROUP_ID = "group_id";
 
 	String USERS_GROUPS = "users_groups";
+
+	String PROVIDER_ID = "provider_id";
+
+	String PROVIDER_TYPE = "provider_type";
 }

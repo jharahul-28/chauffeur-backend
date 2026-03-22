@@ -45,7 +45,7 @@ public class VehicleEntity extends BaseEntity implements VehicleConstants {
 	@Column(name = "vehicle_number", nullable = false, unique = true)
 	private String vehicleNumber;
 
-	@Column(name = "category_id", nullable = false, updatable = false, insertable = false)
+	@Column(name = "category_id", nullable = false, insertable = false, updatable = false)
 	private Long categoryId;
 
 	@JsonIgnore
@@ -77,6 +77,9 @@ public class VehicleEntity extends BaseEntity implements VehicleConstants {
 	@Column(name = "metadata", columnDefinition = "jsonb")
 	private VehicleMetadata metadata = new VehicleMetadata();
 
+	@Column(name = "image_url")
+	private String imageUrl;
+
 	public static VehicleEntity newInstance() {
 		return new VehicleEntity();
 	}
@@ -84,6 +87,7 @@ public class VehicleEntity extends BaseEntity implements VehicleConstants {
 	public VehicleEntity createNewVehicle(VehicleBean bean, VehicleCategoryEntity category) {
 		this.setVehicleNumber(bean.getVehicleNumber());
 		this.setCategory(category);
+		this.setCategoryId(category.getId());
 		this.setBrand(bean.getBrand());
 		this.setModel(bean.getModel());
 		this.setSeatingCapacity(bean.getSeatingCapacity());
@@ -93,4 +97,5 @@ public class VehicleEntity extends BaseEntity implements VehicleConstants {
 		this.setMetadata(bean.getMetadata());
 		return this;
 	}
+
 }

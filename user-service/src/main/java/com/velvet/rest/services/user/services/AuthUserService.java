@@ -15,6 +15,7 @@ import com.velvet.rest.common.exceptions.ValidationException;
 import com.velvet.rest.common.properties.Errors;
 import com.velvet.rest.common.utils.SessionUtils;
 import com.velvet.rest.common.websupport.base.BaseService;
+import com.velvet.rest.services.user.constants.UserConstants.ProviderType;
 import com.velvet.rest.services.user.entity.AuthUserEntity;
 import com.velvet.rest.services.user.entity.GroupEntity;
 import com.velvet.rest.services.user.entity.UserEntity;
@@ -36,6 +37,17 @@ public class AuthUserService implements BaseService<AuthUserEntity> {
 	public AuthUserEntity findById(Long id) {
 		AuthUserEntity result = findRecordById(id);
 		return result;
+	}
+
+	public AuthUserEntity findByProviderId(String providerId) {
+		return authUserRepository.findByProviderId(providerId);
+	}
+
+	public AuthUserEntity linkGoogleProvider(Long userId, String providerId) {
+		AuthUserEntity authUser = findById(userId);
+		authUser.setProviderId(providerId);
+		authUser.setProviderType(ProviderType.GOOGLE);
+		return save(authUser);
 	}
 
 	public AuthUserEntity save(AuthUserEntity entity) {
