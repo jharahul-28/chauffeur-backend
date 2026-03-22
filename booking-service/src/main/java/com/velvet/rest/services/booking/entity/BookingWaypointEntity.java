@@ -18,6 +18,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.velvet.rest.common.websupport.base.BaseEntity;
+import com.velvet.rest.services.booking.beans.WaypointRequest;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -64,5 +65,15 @@ public class BookingWaypointEntity extends BaseEntity implements BookingWaypoint
 
 	public static BookingWaypointEntity newInstance() {
 		return new BookingWaypointEntity();
+	}
+
+	public BookingWaypointEntity buildWaypoint(BookingEntity booking, Integer sequence, WaypointRequest request) {
+		this.setBooking(booking);
+		this.setWaypointSequence(sequence);
+		this.setWaypointType(request.getWaypointType());
+		this.setLatitude(request.getLatitude());
+		this.setLongitude(request.getLongitude());
+		this.setAddress(request.getAddress());
+		return this;
 	}
 }

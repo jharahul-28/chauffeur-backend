@@ -3,10 +3,11 @@ package com.velvet.rest.services.booking.services;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-import com.velvet.rest.common.utils.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -14,6 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.velvet.rest.common.beans.ErrorBean;
 import com.velvet.rest.common.dbsupport.crud.BaseCrudRepository;
+import com.velvet.rest.common.dbsupport.pagination.PageAndSortRequest.SortDirection;
+import com.velvet.rest.common.dbsupport.pagination.PageAndSortResult;
+import com.velvet.rest.common.utils.CollectionUtils;
 import com.velvet.rest.common.exceptions.ValidationException;
 import com.velvet.rest.common.websupport.base.BaseService;
 import com.velvet.rest.services.booking.beans.BookingRequest;
@@ -114,14 +118,7 @@ public class BookingService implements BaseService<BookingEntity> {
 			sequence = (maxSeq != null ? maxSeq : 0) + 1;
 		}
 
-		BookingWaypointEntity waypoint = BookingWaypointEntity.newInstance();
-		waypoint.setBooking(booking);
-		waypoint.setWaypointSequence(sequence);
-		waypoint.setWaypointType(request.getWaypointType());
-		waypoint.setLatitude(request.getLatitude());
-		waypoint.setLongitude(request.getLongitude());
-		waypoint.setAddress(request.getAddress());
-		bookingWaypointRepository.save(waypoint);
+		bookingWaypointRepository.save(BookingWaypointEntity.newInstance().buildWaypoint(booking, sequence, request));
 
 		validateWaypointOrder(bookingId);
 
@@ -171,12 +168,12 @@ public class BookingService implements BaseService<BookingEntity> {
 	}
 
 	private void validateWaypointOrder(Long bookingId) {
-		List<BookingWaypointEntity> active = bookingWaypointRepository.findActiveByBookingIdOrdered(bookingId);
-		if (active.isEmpty()) return;
-		if (!WaypointType.PICKUP.equals(active.get(0).getWaypointType())) {
+		List<BookingWaypointEntity> activeWaypoints = bookingWaypointRepository.findActiveByBookingIdOrdered(bookingId);
+		if (activeWaypoints.isEmpty()) return;
+		if (!WaypointType.PICKUP.equals(activeWaypoints.get(0).getWaypointType())) {
 			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_WAYPOINT_ORDER, "First waypoint must be a PICKUP", "waypointType"));
 		}
-		if (!WaypointType.DROP.equals(active.get(active.size() - 1).getWaypointType())) {
+		if (!WaypointType.DROP.equals(activeWaypoints.get(activeWaypoints.size() - 1).getWaypointType())) {
 			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_WAYPOINT_ORDER, "Last waypoint must be a DROP", "waypointType"));
 		}
 	}
@@ -195,6 +192,33 @@ public class BookingService implements BaseService<BookingEntity> {
 			waypoints.add(waypoint);
 		}
 		return waypoints;
+	}
+
+	public BookingEntity getById(Long id) {
+		BookingEntity booking = bookingRepository.findById(id)
+				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_FOUND, "Booking not found", "id")));
+		if (booking.getActive() != 1) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_FOUND, "Booking not found", "id"));
+		}
+		return booking;
+	}
+
+	public List<BookingWaypointEntity> getActiveWaypoints(Long bookingId) {
+		if (!bookingRepository.existsById(bookingId)) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_FOUND, "Booking not found", "bookingId"));
+		}
+		return bookingWaypointRepository.findActiveByBookingIdOrdered(bookingId);
+	}
+
+	public PageAndSortResult<BookingEntity> getRequestedBookings(Integer pageSize, Integer pageNo, Map<String, SortDirection> sort) {
+		Map<String, Object> filters = new HashMap<>();
+		filters.put("status", Status.REQUESTED);
+		filters.put("active", 1);
+		try {
+			return findPagedRecords(filters, sort, pageSize, pageNo);
+		} catch (Exception e) {
+			throw new ValidationException(ErrorBean.withError("FETCH_ERROR", e.getMessage(), null));
+		}
 	}
 
 	private String generateBookingReference() {

@@ -56,6 +56,11 @@
 				<artifactId>velvet-booking-service</artifactId>
 				<version>1.0-SNAPSHOT</version>
 			</dependency>
+			<dependency>
+				<groupId>com.velvet.rest.services.app</groupId>
+				<artifactId>velvet-agent-service</artifactId>
+				<version>1.0-SNAPSHOT</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	<modules>
