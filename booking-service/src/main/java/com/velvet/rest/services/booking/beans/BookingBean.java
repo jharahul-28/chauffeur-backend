@@ -6,8 +6,12 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-import com.velvet.rest.services.booking.entity.BookingConstants.BeverageType;
+import com.velvet.rest.services.booking.entity.BookingConstants.BookingSource;
+import com.velvet.rest.services.booking.entity.BookingConstants.PaymentMode;
+import com.velvet.rest.services.booking.entity.BookingConstants.PaymentStatus;
+import com.velvet.rest.services.booking.entity.BookingConstants.RideType;
 import com.velvet.rest.services.booking.entity.BookingConstants.Status;
+import com.velvet.rest.services.booking.entity.BookingConstants.TripType;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -25,40 +29,63 @@ public class BookingBean implements Serializable {
 	@ApiModelProperty(value = "Unique booking reference")
 	private String bookingReference;
 
-	@ApiModelProperty(value = "Customer ID")
-	private Long customerId;
-
-	@ApiModelProperty(value = "Date of the ride")
-	private LocalDate rideDate;
-
-	@ApiModelProperty(value = "Time of the ride")
-	private LocalTime rideTime;
-
-	@ApiModelProperty(value = "Vehicle category ID")
-	private Long vehicleCategoryId;
-
-	@ApiModelProperty(value = "Assigned vehicle ID")
-	private Long vehicleId;
-
-	@ApiModelProperty(value = "Assigned chauffeur ID")
-	private Long chauffeurId;
+	@ApiModelProperty(value = "Date the booking was created")
+	private LocalDate bookingDate;
 
 	@ApiModelProperty(value = "Booking status")
 	private Status status;
 
-	@ApiModelProperty(value = "Beverage preference")
-	private BeverageType beverageType;
+	// --- Customer ---
 
-	@ApiModelProperty(value = "Special request")
-	private String specialRequest;
+	@ApiModelProperty(value = "Customer ID")
+	private Long customerId;
 
-	@ApiModelProperty(value = "Estimated price")
-	private BigDecimal estimatedPrice;
+	@ApiModelProperty(value = "Customer metadata (name, phone, customerType)")
+	private BookingMetadata metadata;
 
-	@ApiModelProperty(value = "Estimated distance in km")
-	private BigDecimal estimatedDistanceKm;
+	// --- Ride details ---
 
-	@ApiModelProperty(value = "Waypoints (pickup and drop locations)")
+	@ApiModelProperty(value = "Date of the ride")
+	private LocalDate rideDate;
+
+	@ApiModelProperty(value = "Pickup time")
+	private LocalTime pickupTime;
+
+	@ApiModelProperty(value = "Booking source")
+	private BookingSource bookingSource;
+
+	@ApiModelProperty(value = "Ride type")
+	private RideType rideType;
+
+	@ApiModelProperty(value = "Trip type")
+	private TripType tripType;
+
+	@ApiModelProperty(value = "Distance in km")
+	private BigDecimal kmRide;
+
+	// --- Fare ---
+
+	@ApiModelProperty(value = "Total fare")
+	private BigDecimal totalFare;
+
+	@ApiModelProperty(value = "Advance / payment received")
+	private BigDecimal advanceAmount;
+
+	@ApiModelProperty(value = "Balance amount (totalFare - advanceAmount - parkingFee - customerTip)")
+	private BigDecimal balanceAmount;
+
+	@ApiModelProperty(value = "Parking fee")
+	private BigDecimal parkingFee;
+
+	@ApiModelProperty(value = "Payment mode")
+	private PaymentMode paymentMode;
+
+	@ApiModelProperty(value = "Payment status")
+	private PaymentStatus paymentStatus;
+
+	// --- Waypoints ---
+
+	@ApiModelProperty(value = "Waypoints (pickup, stops, and drop locations)")
 	private List<BookingWaypointBean> waypoints;
 
 	public static BookingBean newInstance() {

@@ -19,12 +19,40 @@ public interface BookingConstants {
 		EXPIRED
 	}
 
-	enum BeverageType {
-		NONE,
-		WATER,
-		JUICE,
-		SOFT_DRINK,
-		COFFEE,
-		TEA
+	enum CustomerType {
+		NORMAL,
+		MEMBERSHIP,
+		VIP
+	}
+
+	enum BookingSource {
+		APP,
+		WEB,
+		WALK_IN
+	}
+
+	enum RideType {
+		ONE_WAY,
+		ROUND_TRIP
+	}
+
+	enum TripType {
+		ONE_WAY,
+		AIRPORT_TRANSFER,
+		HOURLY_RENTALS
+	}
+
+	enum PaymentMode {
+		CASH,
+		CARD,
+		UPI,
+		ONLINE
+	}
+
+	enum PaymentStatus {
+		PENDING,
+		PARTIAL,
+		PAID,
+		REFUNDED
 	}
 }

@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.velvet.rest.services.booking.beans.BookingMetadata;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -23,6 +25,7 @@ import com.velvet.rest.common.websupport.base.BaseService;
 import com.velvet.rest.services.booking.beans.BookingRequest;
 import com.velvet.rest.services.booking.beans.WaypointRequest;
 import com.velvet.rest.services.booking.entity.BookingWaypointConstants.WaypointType;
+import com.velvet.rest.services.booking.entity.BookingConstants.PaymentStatus;
 import com.velvet.rest.services.booking.entity.BookingConstants.Status;
 import com.velvet.rest.services.booking.entity.BookingEntity;
 import com.velvet.rest.services.booking.entity.BookingWaypointEntity;
@@ -54,17 +57,52 @@ public class BookingService implements BaseService<BookingEntity> {
 	}
 
 	private BookingEntity createBooking(BookingRequest request) {
-		if (request.getCustomerId() == null) {
-			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "customerId is required to create a booking", "customerId"));
+		if (request.getCustomerName() == null || request.getCustomerName().isBlank()) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "customerName is required", "customerName"));
+		}
+		if (request.getCustomerContact() == null || request.getCustomerContact().isBlank()) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "customerContact is required", "customerContact"));
+		}
+		if (request.getRideType() == null) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "rideType is required", "rideType"));
+		}
+		if (request.getTripType() == null) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "tripType is required", "tripType"));
+		}
+		if (request.getRideDate() == null) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "rideDate is required", "rideDate"));
+		}
+		if (request.getPickupTime() == null) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "pickupTime is required", "pickupTime"));
 		}
 		if (CollectionUtils.isEmpty(request.getWaypoints())) {
 			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "At least one waypoint is required", "waypoints"));
 		}
 
+		BookingMetadata metadata = new BookingMetadata();
+		metadata.setCustomerName(request.getCustomerName());
+		metadata.setCustomerContact(request.getCustomerContact());
+		if (request.getCustomerType() != null) metadata.setCustomerType(request.getCustomerType());
+		if (request.getSpecialInstructions() != null) metadata.setSpecialInstructions(request.getSpecialInstructions());
+		if (request.getRemarks() != null) metadata.setRemarks(request.getRemarks());
+
 		BookingEntity booking = BookingEntity.newInstance();
 		booking.setBookingReference(generateBookingReference());
-		booking.setCustomerId(request.getCustomerId());
+		booking.setBookingDate(LocalDate.now());
 		booking.setStatus(Status.PENDING);
+		booking.setCustomerId(request.getCustomerId());
+		booking.setMetadata(metadata);
+		booking.setRideType(request.getRideType());
+		booking.setTripType(request.getTripType());
+		booking.setRideDate(request.getRideDate());
+		booking.setPickupTime(request.getPickupTime());
+		if (request.getBookingSource() != null) booking.setBookingSource(request.getBookingSource());
+		if (request.getKmRide() != null) booking.setKmRide(request.getKmRide());
+		if (request.getTotalFare() != null) booking.setTotalFare(request.getTotalFare());
+		if (request.getAdvanceAmount() != null) booking.setAdvanceAmount(request.getAdvanceAmount());
+		if (request.getParkingFee() != null) booking.setParkingFee(request.getParkingFee());
+		if (request.getPaymentMode() != null) booking.setPaymentMode(request.getPaymentMode());
+		booking.setPaymentStatus(request.getPaymentStatus() != null ? request.getPaymentStatus() : PaymentStatus.PENDING);
 		bookingRepository.save(booking);
 
 		List<BookingWaypointEntity> waypoints = buildWaypointEntities(booking, request.getWaypoints());
@@ -81,21 +119,40 @@ public class BookingService implements BaseService<BookingEntity> {
 			throw new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_PENDING, "Booking is no longer in PENDING state", "bookingId"));
 		}
 
+		if (request.getRideType() != null) booking.setRideType(request.getRideType());
+		if (request.getTripType() != null) booking.setTripType(request.getTripType());
+		if (request.getBookingSource() != null) booking.setBookingSource(request.getBookingSource());
 		if (request.getRideDate() != null) {
 			booking.setRideDate(request.getRideDate());
 		}
-		if (request.getRideTime() != null) {
-			booking.setRideTime(request.getRideTime());
+		if (request.getPickupTime() != null) {
+			booking.setPickupTime(request.getPickupTime());
 		}
-		if (request.getVehicleCategoryId() != null) {
-			booking.setVehicleCategoryId(request.getVehicleCategoryId());
+		if (request.getKmRide() != null) {
+			booking.setKmRide(request.getKmRide());
 		}
-		if (request.getBeverageType() != null) {
-			booking.setBeverageType(request.getBeverageType());
+		if (request.getTotalFare() != null) {
+			booking.setTotalFare(request.getTotalFare());
 		}
-		if (request.getSpecialRequest() != null) {
-			booking.setSpecialRequest(request.getSpecialRequest());
+		if (request.getAdvanceAmount() != null) {
+			booking.setAdvanceAmount(request.getAdvanceAmount());
 		}
+		if (request.getParkingFee() != null) {
+			booking.setParkingFee(request.getParkingFee());
+		}
+		if (request.getPaymentMode() != null) {
+			booking.setPaymentMode(request.getPaymentMode());
+		}
+		if (request.getPaymentStatus() != null) {
+			booking.setPaymentStatus(request.getPaymentStatus());
+		}
+		BookingMetadata metadata = booking.getMetadata() != null ? booking.getMetadata() : new BookingMetadata();
+		if (request.getCustomerName() != null) metadata.setCustomerName(request.getCustomerName());
+		if (request.getCustomerContact() != null) metadata.setCustomerContact(request.getCustomerContact());
+		if (request.getCustomerType() != null) metadata.setCustomerType(request.getCustomerType());
+		if (request.getSpecialInstructions() != null) metadata.setSpecialInstructions(request.getSpecialInstructions());
+		if (request.getRemarks() != null) metadata.setRemarks(request.getRemarks());
+		booking.setMetadata(metadata);
 
 		return bookingRepository.save(booking);
 	}
