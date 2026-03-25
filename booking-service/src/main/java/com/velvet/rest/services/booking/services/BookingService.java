@@ -101,7 +101,7 @@ public class BookingService implements BaseService<BookingEntity> {
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	public BookingEntity addWaypoint(Long bookingId, WaypointRequest request) {
+	public BookingEntity addStop(Long bookingId, WaypointRequest request) {
 		BookingEntity booking = bookingRepository.findById(bookingId)
 				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_FOUND, "Booking not found", "bookingId")));
 
@@ -109,25 +109,18 @@ public class BookingService implements BaseService<BookingEntity> {
 			throw new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_PENDING, "Booking is no longer in PENDING state", "bookingId"));
 		}
 
-		int sequence;
-		if (request.getWaypointSequence() != null) {
-			sequence = request.getWaypointSequence();
-			bookingWaypointRepository.shiftSequencesUp(bookingId, sequence);
-		} else {
-			Integer maxSeq = bookingWaypointRepository.findMaxSequenceByBookingId(bookingId);
-			sequence = (maxSeq != null ? maxSeq : 0) + 1;
+		Integer maxSeq = bookingWaypointRepository.findMaxSequenceByBookingId(bookingId);
+		int dropSeq = maxSeq != null ? maxSeq : 2;
+
+		// insert before the DROP (last position)
+		int sequence = request.getWaypointSequence() != null ? request.getWaypointSequence() : dropSeq;
+
+		if (sequence <= 1 || sequence > dropSeq) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_WAYPOINT_ORDER, "Stop must be inserted between PICKUP and DROP", "waypointSequence"));
 		}
 
-		bookingWaypointRepository.save(BookingWaypointEntity.newInstance().buildWaypoint(booking, sequence, request));
-
-		validateWaypointOrder(bookingId);
-
-		if (WaypointType.PICKUP.equals(request.getWaypointType())) {
-			booking.setPickupCount(booking.getPickupCount() + 1);
-		} else {
-			booking.setDropCount(booking.getDropCount() + 1);
-		}
-		bookingRepository.save(booking);
+		bookingWaypointRepository.shiftSequencesUp(bookingId, sequence);
+		bookingWaypointRepository.save(BookingWaypointEntity.newInstance().buildWaypoint(booking, sequence, WaypointType.STOP, request));
 
 		return booking;
 	}
@@ -145,51 +138,61 @@ public class BookingService implements BaseService<BookingEntity> {
 				.filter(w -> bookingId.equals(w.getBookingId()))
 				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.WAYPOINT_NOT_FOUND, "Waypoint not found for this booking", "waypointId")));
 
-		WaypointType type = waypoint.getWaypointType();
-		long remaining = bookingWaypointRepository.countByBookingIdAndWaypointType(bookingId, type);
-		if (remaining <= 1) {
-			throw new ValidationException(ErrorBean.withError(AppErrors.WAYPOINT_REQUIRED,
-					"Booking must have at least one " + type.name() + " waypoint", "waypointId"));
+		if (!WaypointType.STOP.equals(waypoint.getWaypointType())) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_WAYPOINT_ORDER, "Only STOP waypoints can be removed", "waypointId"));
 		}
 
 		waypoint.setActive(0);
 		bookingWaypointRepository.save(waypoint);
 
-		validateWaypointOrder(bookingId);
+		return booking;
+	}
 
-		if (WaypointType.PICKUP.equals(type)) {
-			booking.setPickupCount(booking.getPickupCount() - 1);
-		} else {
-			booking.setDropCount(booking.getDropCount() - 1);
+	@Transactional(propagation = Propagation.REQUIRED)
+	public BookingEntity updatePickup(Long bookingId, WaypointRequest request) {
+		BookingEntity booking = bookingRepository.findById(bookingId)
+				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_FOUND, "Booking not found", "bookingId")));
+
+		if (!Status.PENDING.equals(booking.getStatus())) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_PENDING, "Booking is no longer in PENDING state", "bookingId"));
 		}
-		bookingRepository.save(booking);
+
+		List<BookingWaypointEntity> waypoints = bookingWaypointRepository.findActiveByBookingIdOrdered(bookingId);
+		BookingWaypointEntity pickup = waypoints.get(0);
+		pickup.setLatitude(request.getLatitude());
+		pickup.setLongitude(request.getLongitude());
+		pickup.setAddress(request.getAddress());
+		bookingWaypointRepository.save(pickup);
 
 		return booking;
 	}
 
-	private void validateWaypointOrder(Long bookingId) {
-		List<BookingWaypointEntity> activeWaypoints = bookingWaypointRepository.findActiveByBookingIdOrdered(bookingId);
-		if (activeWaypoints.isEmpty()) return;
-		if (!WaypointType.PICKUP.equals(activeWaypoints.get(0).getWaypointType())) {
-			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_WAYPOINT_ORDER, "First waypoint must be a PICKUP", "waypointType"));
+	@Transactional(propagation = Propagation.REQUIRED)
+	public BookingEntity updateDrop(Long bookingId, WaypointRequest request) {
+		BookingEntity booking = bookingRepository.findById(bookingId)
+				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_FOUND, "Booking not found", "bookingId")));
+
+		if (!Status.PENDING.equals(booking.getStatus())) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_PENDING, "Booking is no longer in PENDING state", "bookingId"));
 		}
-		if (!WaypointType.DROP.equals(activeWaypoints.get(activeWaypoints.size() - 1).getWaypointType())) {
-			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_WAYPOINT_ORDER, "Last waypoint must be a DROP", "waypointType"));
-		}
+
+		List<BookingWaypointEntity> waypoints = bookingWaypointRepository.findActiveByBookingIdOrdered(bookingId);
+		BookingWaypointEntity drop = waypoints.get(waypoints.size() - 1);
+		drop.setLatitude(request.getLatitude());
+		drop.setLongitude(request.getLongitude());
+		drop.setAddress(request.getAddress());
+		bookingWaypointRepository.save(drop);
+
+		return booking;
 	}
 
 	private List<BookingWaypointEntity> buildWaypointEntities(BookingEntity booking, List<WaypointRequest> waypointRequests) {
 		List<BookingWaypointEntity> waypoints = new ArrayList<>();
-		for (int i = 0; i < waypointRequests.size(); i++) {
+		int total = waypointRequests.size();
+		for (int i = 0; i < total; i++) {
 			WaypointRequest req = waypointRequests.get(i);
-			BookingWaypointEntity waypoint = BookingWaypointEntity.newInstance();
-			waypoint.setBooking(booking);
-			waypoint.setWaypointSequence(i + 1);
-			waypoint.setWaypointType(req.getWaypointType());
-			waypoint.setLatitude(req.getLatitude());
-			waypoint.setLongitude(req.getLongitude());
-			waypoint.setAddress(req.getAddress());
-			waypoints.add(waypoint);
+			WaypointType type = (i == 0) ? WaypointType.PICKUP : (i == total - 1) ? WaypointType.DROP : WaypointType.STOP;
+			waypoints.add(BookingWaypointEntity.newInstance().buildWaypoint(booking, i + 1, type, req));
 		}
 		return waypoints;
 	}
@@ -201,6 +204,20 @@ public class BookingService implements BaseService<BookingEntity> {
 			throw new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_FOUND, "Booking not found", "id"));
 		}
 		return booking;
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	public BookingEntity requestBooking(Long id) {
+		BookingEntity booking = bookingRepository.findById(id)
+				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_FOUND, "Booking not found", "id")));
+		if (Status.REQUESTED.equals(booking.getStatus())) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.BOOKING_ALREADY_REQUESTED, "Booking has already been submitted", "id"));
+		}
+		if (!Status.PENDING.equals(booking.getStatus())) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_PENDING, "Booking is not in PENDING state", "id"));
+		}
+		booking.setStatus(Status.REQUESTED);
+		return bookingRepository.save(booking);
 	}
 
 	public List<BookingWaypointEntity> getActiveWaypoints(Long bookingId) {

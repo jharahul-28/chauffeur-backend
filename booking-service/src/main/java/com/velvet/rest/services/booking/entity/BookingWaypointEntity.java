@@ -67,10 +67,10 @@ public class BookingWaypointEntity extends BaseEntity implements BookingWaypoint
 		return new BookingWaypointEntity();
 	}
 
-	public BookingWaypointEntity buildWaypoint(BookingEntity booking, Integer sequence, WaypointRequest request) {
+	public BookingWaypointEntity buildWaypoint(BookingEntity booking, Integer sequence, WaypointType type, WaypointRequest request) {
 		this.setBooking(booking);
 		this.setWaypointSequence(sequence);
-		this.setWaypointType(request.getWaypointType());
+		this.setWaypointType(type);
 		this.setLatitude(request.getLatitude());
 		this.setLongitude(request.getLongitude());
 		this.setAddress(request.getAddress());

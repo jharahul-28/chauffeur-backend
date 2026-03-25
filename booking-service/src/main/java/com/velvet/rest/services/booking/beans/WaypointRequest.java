@@ -6,8 +6,6 @@ import java.math.BigDecimal;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-import com.velvet.rest.services.booking.entity.BookingWaypointConstants.WaypointType;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -17,10 +15,6 @@ import lombok.Data;
 public class WaypointRequest implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-
-	@NotNull
-	@ApiModelProperty(value = "Type of waypoint: PICKUP or DROP", required = true)
-	private WaypointType waypointType;
 
 	@NotNull
 	@ApiModelProperty(value = "Latitude", required = true)

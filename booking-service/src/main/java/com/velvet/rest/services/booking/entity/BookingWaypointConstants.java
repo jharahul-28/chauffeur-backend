@@ -6,6 +6,7 @@ public interface BookingWaypointConstants {
 
 	enum WaypointType {
 		PICKUP,
+		STOP,
 		DROP
 	}
 }

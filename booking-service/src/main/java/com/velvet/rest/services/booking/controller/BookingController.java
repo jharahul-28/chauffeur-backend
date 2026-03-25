@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -87,11 +88,31 @@ public class BookingController implements BaseController {
 				.collect(java.util.stream.Collectors.toList());
 	}
 
-	@ApiOperation(value = "Add a waypoint to a booking", nickname = "addWaypoint")
+	@ApiOperation(value = "Submit a booking (PENDING → REQUESTED)", nickname = "submitBooking")
+	@PostMapping("/bookings/{id}/submit")
+	public ResponseEntity<BookingBean> requestBooking(@PathVariable Long id) {
+		BookingEntity booking = bookingService.requestBooking(id);
+		return ResponseEntity.ok(getMapper().mapSrcToDest(booking, BookingBean.newInstance()));
+	}
+
+	@ApiOperation(value = "Add a stop to a booking", nickname = "addStop")
 	@PostMapping("/bookings/{bookingId}/waypoints")
-	public ResponseEntity<BookingBean> addWaypoint(@PathVariable Long bookingId, @Valid @RequestBody WaypointRequest request) {
-		logger.info("BookingController.addWaypoint: bookingId={}, type={}, sequence={}", bookingId, request.getWaypointType(), request.getWaypointSequence());
-		BookingEntity booking = bookingService.addWaypoint(bookingId, request);
+	public ResponseEntity<BookingBean> addStop(@PathVariable Long bookingId, @Valid @RequestBody WaypointRequest request) {
+		BookingEntity booking = bookingService.addStop(bookingId, request);
+		return ResponseEntity.ok(getMapper().mapSrcToDest(booking, BookingBean.newInstance()));
+	}
+
+	@ApiOperation(value = "Update pickup location", nickname = "updatePickup")
+	@PutMapping("/bookings/{bookingId}/waypoints/pickup")
+	public ResponseEntity<BookingBean> updatePickup(@PathVariable Long bookingId, @Valid @RequestBody WaypointRequest request) {
+		BookingEntity booking = bookingService.updatePickup(bookingId, request);
+		return ResponseEntity.ok(getMapper().mapSrcToDest(booking, BookingBean.newInstance()));
+	}
+
+	@ApiOperation(value = "Update drop location", nickname = "updateDrop")
+	@PutMapping("/bookings/{bookingId}/waypoints/drop")
+	public ResponseEntity<BookingBean> updateDrop(@PathVariable Long bookingId, @Valid @RequestBody WaypointRequest request) {
+		BookingEntity booking = bookingService.updateDrop(bookingId, request);
 		return ResponseEntity.ok(getMapper().mapSrcToDest(booking, BookingBean.newInstance()));
 	}
 
