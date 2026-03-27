@@ -51,6 +51,16 @@
 				<artifactId>velvet-fleet-service</artifactId>
 				<version>1.0-SNAPSHOT</version>
 			</dependency>
+			<dependency>
+				<groupId>com.velvet.rest.services.app</groupId>
+				<artifactId>velvet-booking-service</artifactId>
+				<version>1.0-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.velvet.rest.services.app</groupId>
+				<artifactId>velvet-agent-service</artifactId>
+				<version>1.0-SNAPSHOT</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	<modules>
@@ -60,5 +70,6 @@
 		<module>whatsapp-service</module>
 		<module>chat-service</module>
 		<module>fleet-service</module>
+		<module>booking-service</module>
 	</modules>
 </project>
