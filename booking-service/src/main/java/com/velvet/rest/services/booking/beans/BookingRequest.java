@@ -10,8 +10,8 @@ import com.velvet.rest.services.booking.entity.BookingConstants.BookingSource;
 import com.velvet.rest.services.booking.entity.BookingConstants.CustomerType;
 import com.velvet.rest.services.booking.entity.BookingConstants.PaymentMode;
 import com.velvet.rest.services.booking.entity.BookingConstants.PaymentStatus;
-import com.velvet.rest.services.booking.entity.BookingConstants.RideType;
 import com.velvet.rest.services.booking.entity.BookingConstants.TripType;
+import com.velvet.rest.services.booking.beans.AdditionalCharges;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -48,9 +48,6 @@ public class BookingRequest implements Serializable {
 	@ApiModelProperty(value = "Booking source — required on create")
 	private BookingSource bookingSource;
 
-	@ApiModelProperty(value = "Ride type — required on create")
-	private RideType rideType;
-
 	@ApiModelProperty(value = "Trip type — required on create")
 	private TripType tripType;
 
@@ -65,14 +62,17 @@ public class BookingRequest implements Serializable {
 
 	// --- Fare ---
 
-	@ApiModelProperty(value = "Total fare")
-	private BigDecimal totalFare;
+	@ApiModelProperty(value = "Estimated fare set by admin")
+	private BigDecimal estimatedFare;
+
+	@ApiModelProperty(value = "Actual fare set by admin post-ride")
+	private BigDecimal actualFare;
+
+	@ApiModelProperty(value = "Additional charges (mcFare, waitingCharge, parkingCharge)")
+	private AdditionalCharges additionalCharges;
 
 	@ApiModelProperty(value = "Advance / payment received")
 	private BigDecimal advanceAmount;
-
-	@ApiModelProperty(value = "Parking fee")
-	private BigDecimal parkingFee;
 
 	@ApiModelProperty(value = "Payment mode")
 	private PaymentMode paymentMode;

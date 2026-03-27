@@ -9,9 +9,9 @@ import java.util.List;
 import com.velvet.rest.services.booking.entity.BookingConstants.BookingSource;
 import com.velvet.rest.services.booking.entity.BookingConstants.PaymentMode;
 import com.velvet.rest.services.booking.entity.BookingConstants.PaymentStatus;
-import com.velvet.rest.services.booking.entity.BookingConstants.RideType;
 import com.velvet.rest.services.booking.entity.BookingConstants.Status;
 import com.velvet.rest.services.booking.entity.BookingConstants.TripType;
+import com.velvet.rest.services.booking.beans.AdditionalCharges;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -54,9 +54,6 @@ public class BookingBean implements Serializable {
 	@ApiModelProperty(value = "Booking source")
 	private BookingSource bookingSource;
 
-	@ApiModelProperty(value = "Ride type")
-	private RideType rideType;
-
 	@ApiModelProperty(value = "Trip type")
 	private TripType tripType;
 
@@ -65,17 +62,26 @@ public class BookingBean implements Serializable {
 
 	// --- Fare ---
 
-	@ApiModelProperty(value = "Total fare")
+	@ApiModelProperty(value = "Estimated fare set by admin")
+	private BigDecimal estimatedFare;
+
+	@ApiModelProperty(value = "Actual fare set by admin post-ride")
+	private BigDecimal actualFare;
+
+	@ApiModelProperty(value = "Additional charges (mcFare, waitingCharge, parkingCharge)")
+	private AdditionalCharges additionalCharges;
+
+	@ApiModelProperty(value = "Sum of all additional charges")
+	private BigDecimal totalAdditionalAmount;
+
+	@ApiModelProperty(value = "Total fare = actualFare + totalAdditionalAmount")
 	private BigDecimal totalFare;
 
 	@ApiModelProperty(value = "Advance / payment received")
 	private BigDecimal advanceAmount;
 
-	@ApiModelProperty(value = "Balance amount (totalFare - advanceAmount - parkingFee - customerTip)")
+	@ApiModelProperty(value = "Balance amount (stored) = totalFare - advanceAmount")
 	private BigDecimal balanceAmount;
-
-	@ApiModelProperty(value = "Parking fee")
-	private BigDecimal parkingFee;
 
 	@ApiModelProperty(value = "Payment mode")
 	private PaymentMode paymentMode;

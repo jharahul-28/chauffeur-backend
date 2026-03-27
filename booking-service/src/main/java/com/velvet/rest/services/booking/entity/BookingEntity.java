@@ -23,6 +23,7 @@ import org.hibernate.annotations.Type;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.velvet.rest.common.websupport.base.BaseEntity;
+import com.velvet.rest.services.booking.beans.AdditionalCharges;
 import com.velvet.rest.services.booking.beans.BookingMetadata;
 
 import lombok.Data;
@@ -76,10 +77,6 @@ public class BookingEntity extends BaseEntity implements BookingConstants {
 	private BookingSource bookingSource = BookingSource.WEB;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "ride_type", nullable = false)
-	private RideType rideType;
-
-	@Enumerated(EnumType.STRING)
 	@Column(name = "trip_type", nullable = false)
 	private TripType tripType;
 
@@ -88,14 +85,27 @@ public class BookingEntity extends BaseEntity implements BookingConstants {
 
 	// --- Fare fields ---
 
+	@Column(name = "estimated_fare", precision = 10, scale = 2)
+	private BigDecimal estimatedFare;
+
+	@Column(name = "actual_fare", precision = 10, scale = 2)
+	private BigDecimal actualFare;
+
+	@Type(type = "jsonb")
+	@Column(name = "additional_charges", columnDefinition = "jsonb")
+	private AdditionalCharges additionalCharges;
+
+	@Column(name = "total_additional_amount", precision = 10, scale = 2)
+	private BigDecimal totalAdditionalAmount;
+
 	@Column(name = "total_fare", precision = 10, scale = 2)
 	private BigDecimal totalFare;
 
 	@Column(name = "advance_amount", precision = 10, scale = 2)
 	private BigDecimal advanceAmount;
 
-	@Column(name = "parking_fee", precision = 10, scale = 2)
-	private BigDecimal parkingFee;
+	@Column(name = "balance_amount", precision = 10, scale = 2)
+	private BigDecimal balanceAmount;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "payment_mode")
@@ -120,15 +130,11 @@ public class BookingEntity extends BaseEntity implements BookingConstants {
 	@JsonManagedReference
 	private List<BookingWaypointEntity> waypoints;
 
-	public BigDecimal getBalanceAmount() {
-		if (totalFare == null) {
-			return null;
-		}
-		BigDecimal balance = totalFare;
-		if (advanceAmount != null) balance = balance.subtract(advanceAmount);
-		if (parkingFee != null) balance = balance.subtract(parkingFee);
-		return balance;
-	}
+	// --- Vehicles ---
+
+	@OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<BookingVehicleEntity> vehicles;
+
 
 	public static BookingEntity newInstance() {
 		return new BookingEntity();

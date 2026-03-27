@@ -1,5 +1,6 @@
 package com.velvet.rest.services.booking.services;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -8,7 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.velvet.rest.services.booking.beans.AdditionalCharges;
 import com.velvet.rest.services.booking.beans.BookingMetadata;
+import com.velvet.rest.services.booking.beans.BookingVehicleRequest;
+import com.velvet.rest.services.booking.beans.BookingVehicleMetadata;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,13 +29,20 @@ import com.velvet.rest.common.websupport.base.BaseService;
 import com.velvet.rest.services.booking.beans.BookingRequest;
 import com.velvet.rest.services.booking.beans.WaypointRequest;
 import com.velvet.rest.services.booking.entity.BookingWaypointConstants.WaypointType;
-import com.velvet.rest.services.booking.entity.BookingConstants.PaymentStatus;
 import com.velvet.rest.services.booking.entity.BookingConstants.Status;
 import com.velvet.rest.services.booking.entity.BookingEntity;
+import com.velvet.rest.services.booking.entity.BookingVehicleEntity;
 import com.velvet.rest.services.booking.entity.BookingWaypointEntity;
 import com.velvet.rest.services.booking.errors.AppErrors;
 import com.velvet.rest.services.booking.repository.BookingRepository;
+import com.velvet.rest.services.booking.repository.BookingVehicleRepository;
 import com.velvet.rest.services.booking.repository.BookingWaypointRepository;
+import com.velvet.rest.services.fleet.entity.VehicleCategoryEntity;
+import com.velvet.rest.services.fleet.entity.VehicleEntity;
+import com.velvet.rest.services.fleet.repository.VehicleCategoryRepository;
+import com.velvet.rest.services.fleet.repository.VehicleRepository;
+import com.velvet.rest.services.user.entity.ChauffeurEntity;
+import com.velvet.rest.services.user.repository.ChauffeurRepository;
 
 /**
  * Service for Booking operations.
@@ -46,6 +57,18 @@ public class BookingService implements BaseService<BookingEntity> {
 
 	@Autowired
 	private BookingWaypointRepository bookingWaypointRepository;
+
+	@Autowired
+	private BookingVehicleRepository bookingVehicleRepository;
+
+	@Autowired
+	private VehicleCategoryRepository vehicleCategoryRepository;
+
+	@Autowired
+	private VehicleRepository vehicleRepository;
+
+	@Autowired
+	private ChauffeurRepository chauffeurRepository;
 
 	@Transactional(propagation = Propagation.REQUIRED)
 	public BookingEntity addBooking(BookingRequest request) {
@@ -63,9 +86,6 @@ public class BookingService implements BaseService<BookingEntity> {
 		if (request.getCustomerContact() == null || request.getCustomerContact().isBlank()) {
 			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "customerContact is required", "customerContact"));
 		}
-		if (request.getRideType() == null) {
-			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "rideType is required", "rideType"));
-		}
 		if (request.getTripType() == null) {
 			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "tripType is required", "tripType"));
 		}
@@ -82,9 +102,6 @@ public class BookingService implements BaseService<BookingEntity> {
 		BookingMetadata metadata = new BookingMetadata();
 		metadata.setCustomerName(request.getCustomerName());
 		metadata.setCustomerContact(request.getCustomerContact());
-		if (request.getCustomerType() != null) metadata.setCustomerType(request.getCustomerType());
-		if (request.getSpecialInstructions() != null) metadata.setSpecialInstructions(request.getSpecialInstructions());
-		if (request.getRemarks() != null) metadata.setRemarks(request.getRemarks());
 
 		BookingEntity booking = BookingEntity.newInstance();
 		booking.setBookingReference(generateBookingReference());
@@ -92,17 +109,9 @@ public class BookingService implements BaseService<BookingEntity> {
 		booking.setStatus(Status.PENDING);
 		booking.setCustomerId(request.getCustomerId());
 		booking.setMetadata(metadata);
-		booking.setRideType(request.getRideType());
 		booking.setTripType(request.getTripType());
 		booking.setRideDate(request.getRideDate());
 		booking.setPickupTime(request.getPickupTime());
-		if (request.getBookingSource() != null) booking.setBookingSource(request.getBookingSource());
-		if (request.getKmRide() != null) booking.setKmRide(request.getKmRide());
-		if (request.getTotalFare() != null) booking.setTotalFare(request.getTotalFare());
-		if (request.getAdvanceAmount() != null) booking.setAdvanceAmount(request.getAdvanceAmount());
-		if (request.getParkingFee() != null) booking.setParkingFee(request.getParkingFee());
-		if (request.getPaymentMode() != null) booking.setPaymentMode(request.getPaymentMode());
-		booking.setPaymentStatus(request.getPaymentStatus() != null ? request.getPaymentStatus() : PaymentStatus.PENDING);
 		bookingRepository.save(booking);
 
 		List<BookingWaypointEntity> waypoints = buildWaypointEntities(booking, request.getWaypoints());
@@ -119,7 +128,6 @@ public class BookingService implements BaseService<BookingEntity> {
 			throw new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_PENDING, "Booking is no longer in PENDING state", "bookingId"));
 		}
 
-		if (request.getRideType() != null) booking.setRideType(request.getRideType());
 		if (request.getTripType() != null) booking.setTripType(request.getTripType());
 		if (request.getBookingSource() != null) booking.setBookingSource(request.getBookingSource());
 		if (request.getRideDate() != null) {
@@ -131,15 +139,19 @@ public class BookingService implements BaseService<BookingEntity> {
 		if (request.getKmRide() != null) {
 			booking.setKmRide(request.getKmRide());
 		}
-		if (request.getTotalFare() != null) {
-			booking.setTotalFare(request.getTotalFare());
+		if (request.getEstimatedFare() != null) {
+			booking.setEstimatedFare(request.getEstimatedFare());
+		}
+		if (request.getActualFare() != null) {
+			booking.setActualFare(request.getActualFare());
+		}
+		if (request.getAdditionalCharges() != null) {
+			booking.setAdditionalCharges(request.getAdditionalCharges());
 		}
 		if (request.getAdvanceAmount() != null) {
 			booking.setAdvanceAmount(request.getAdvanceAmount());
 		}
-		if (request.getParkingFee() != null) {
-			booking.setParkingFee(request.getParkingFee());
-		}
+		computeDerivedFareFields(booking);
 		if (request.getPaymentMode() != null) {
 			booking.setPaymentMode(request.getPaymentMode());
 		}
@@ -293,6 +305,111 @@ public class BookingService implements BaseService<BookingEntity> {
 		} catch (Exception e) {
 			throw new ValidationException(ErrorBean.withError("FETCH_ERROR", e.getMessage(), null));
 		}
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	public BookingVehicleEntity assignVehicle(BookingVehicleRequest request) {
+		if (request.getId() == null) {
+			return createVehicleAssignment(request);
+		} else {
+			return updateVehicleAssignment(request);
+		}
+	}
+
+	private BookingVehicleEntity createVehicleAssignment(BookingVehicleRequest request) {
+		if (request.getBookingId() == null) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "bookingId is required", "bookingId"));
+		}
+		if (request.getVehicleCategoryId() == null) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "vehicleCategoryId is required", "vehicleCategoryId"));
+		}
+
+		BookingEntity booking = bookingRepository.findById(request.getBookingId())
+				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_FOUND, "Booking not found", "bookingId")));
+
+		VehicleCategoryEntity category = vehicleCategoryRepository.findById(request.getVehicleCategoryId())
+				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "Vehicle category not found", "vehicleCategoryId")));
+
+		BookingVehicleMetadata metadata = new BookingVehicleMetadata();
+		metadata.setCategoryName(category.getCategoryName());
+
+		BookingVehicleEntity assignment = BookingVehicleEntity.newInstance();
+		assignment.setBooking(booking);
+		assignment.setVehicleCategoryId(category.getId());
+		assignment.setVehicleCategory(category);
+		assignment.setMetadata(metadata);
+
+		return bookingVehicleRepository.save(assignment);
+	}
+
+	private BookingVehicleEntity updateVehicleAssignment(BookingVehicleRequest request) {
+		BookingVehicleEntity assignment = bookingVehicleRepository.findById(request.getId())
+				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "Vehicle assignment not found", "id")));
+
+		BookingVehicleMetadata metadata = assignment.getMetadata() != null ? assignment.getMetadata() : new BookingVehicleMetadata();
+
+		if (request.getVehicleCategoryId() != null) {
+			VehicleCategoryEntity category = vehicleCategoryRepository.findById(request.getVehicleCategoryId())
+					.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "Vehicle category not found", "vehicleCategoryId")));
+			assignment.setVehicleCategoryId(category.getId());
+			assignment.setVehicleCategory(category);
+			metadata.setCategoryName(category.getCategoryName());
+		}
+
+		if (request.getVehicleId() != null) {
+			VehicleEntity vehicle = vehicleRepository.findById(request.getVehicleId())
+					.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "Vehicle not found", "vehicleId")));
+			assignment.setVehicleId(vehicle.getId());
+			assignment.setVehicle(vehicle);
+			assignment.setVehicleNumber(vehicle.getVehicleNumber());
+			metadata.setVehicleBrand(vehicle.getBrand());
+			metadata.setVehicleModel(vehicle.getModel());
+		}
+
+		if (request.getChauffeurId() != null) {
+			ChauffeurEntity chauffeur = chauffeurRepository.findById(request.getChauffeurId())
+					.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "Chauffeur not found", "chauffeurId")));
+			assignment.setChauffeurId(chauffeur.getId());
+			assignment.setChauffeur(chauffeur);
+			metadata.setChauffeurName(chauffeur.getFirstName() + " " + chauffeur.getLastName());
+			metadata.setChauffeurContact(chauffeur.getPhone());
+		}
+
+		assignment.setMetadata(metadata);
+		return bookingVehicleRepository.save(assignment);
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void removeVehicleAssignment(Long id) {
+		BookingVehicleEntity assignment = bookingVehicleRepository.findById(id)
+				.orElseThrow(() -> new ValidationException(ErrorBean.withError(AppErrors.INVALID_REQUEST, "Vehicle assignment not found", "id")));
+		assignment.setActive(0);
+		bookingVehicleRepository.save(assignment);
+	}
+
+	public List<BookingVehicleEntity> getVehicleAssignments(Long bookingId) {
+		if (!bookingRepository.existsById(bookingId)) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.BOOKING_NOT_FOUND, "Booking not found", "bookingId"));
+		}
+		return bookingVehicleRepository.findByBookingIdAndActive(bookingId, 1);
+	}
+
+	private void computeDerivedFareFields(BookingEntity booking) {
+		AdditionalCharges charges = booking.getAdditionalCharges();
+		BigDecimal totalAdditional = BigDecimal.ZERO;
+		if (charges != null) {
+			if (charges.getMcFare() != null) totalAdditional = totalAdditional.add(charges.getMcFare());
+			if (charges.getWaitingCharge() != null) totalAdditional = totalAdditional.add(charges.getWaitingCharge());
+			if (charges.getParkingCharge() != null) totalAdditional = totalAdditional.add(charges.getParkingCharge());
+		}
+		booking.setTotalAdditionalAmount(totalAdditional);
+
+		BigDecimal actualFare = booking.getActualFare();
+		BigDecimal totalFare = actualFare != null ? actualFare.add(totalAdditional) : null;
+		booking.setTotalFare(totalFare);
+
+		BigDecimal advance = booking.getAdvanceAmount();
+		booking.setBalanceAmount(totalFare != null ? totalFare.subtract(advance != null ? advance : BigDecimal.ZERO) : null);
 	}
 
 	private String generateBookingReference() {

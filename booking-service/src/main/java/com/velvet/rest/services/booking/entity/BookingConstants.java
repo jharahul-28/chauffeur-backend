@@ -31,11 +31,6 @@ public interface BookingConstants {
 		WALK_IN
 	}
 
-	enum RideType {
-		ONE_WAY,
-		ROUND_TRIP
-	}
-
 	enum TripType {
 		ONE_WAY,
 		AIRPORT_TRANSFER,
