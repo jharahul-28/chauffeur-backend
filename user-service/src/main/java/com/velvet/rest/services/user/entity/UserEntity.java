@@ -33,6 +33,10 @@ public abstract class UserEntity extends BaseEntity implements Serializable, Use
 	@Column(name = PHONE)
 	private String phone;
 
+	public void setPhone(String phone) {
+		this.phone = phone != null ? phone.replaceAll("^\\+", "") : null;
+	}
+
 	@Column
 	private String countryCode;
 
