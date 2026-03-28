@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -38,6 +39,7 @@ import com.velvet.rest.services.common.mapper.BaseMapper;
 import com.velvet.rest.services.user.beans.CustomerBean;
 import com.velvet.rest.services.user.beans.CustomerInfoRequest;
 import com.velvet.rest.services.user.beans.CustomerResponse;
+import com.velvet.rest.services.user.beans.CreateCustomerRequest;
 import com.velvet.rest.services.user.beans.CreateWAUserRequest;
 import com.velvet.rest.services.user.beans.GenerateOtpRequest;
 import com.velvet.rest.services.user.beans.InitBean;
@@ -169,6 +171,21 @@ public class CustomerController implements BaseController {
 		CustomerBean userResponse = getMapper().mapSrcToDest(entity, CustomerBean.newInstance());
 		// addAddressInCustomerBean(userResponse);
 		return ResponseEntity.ok(userResponse);
+	}
+
+	@ApiOperation(value = "Find or create a customer by phone number", nickname = "findOrCreateCustomer")
+	@PostMapping("/users/customers/find-or-create")
+	public ResponseEntity<CustomerResponse> findOrCreateCustomer(@Valid @RequestBody CreateCustomerRequest request) {
+		String phone = UserServiceUtil.formatPhoneNumber(request.getCountryCode(), request.getPhone());
+		CustomerEntity customer = customerService.findOrCreateCustomer(phone);
+		return ResponseEntity.ok(getMapper().mapSrcToDest(customer, CustomerResponse.newInstance()));
+	}
+
+	@ApiOperation(value = "Update customer name", nickname = "updateCustomerName")
+	@PatchMapping("/users/customers/{id}/name")
+	public ResponseEntity<CustomerResponse> updateCustomerName(@PathVariable Long id, @RequestParam String name) {
+		CustomerEntity customer = customerService.updateName(id, name);
+		return ResponseEntity.ok(getMapper().mapSrcToDest(customer, CustomerResponse.newInstance()));
 	}
 
 	/**

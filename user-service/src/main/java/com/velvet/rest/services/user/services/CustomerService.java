@@ -27,6 +27,7 @@ import com.velvet.rest.common.logging.AppLogger;
 import com.velvet.rest.common.logging.LoggingManager;
 import com.velvet.rest.common.utils.CollectionUtils;
 import com.velvet.rest.common.utils.ParamsUtils;
+import com.velvet.rest.common.constants.CommonConstants;
 import com.velvet.rest.common.websupport.base.BaseService;
 import com.velvet.rest.services.common.upload.UploadService;
 import com.velvet.rest.services.common.upload.UploadServiceUtil;
@@ -45,6 +46,8 @@ import com.velvet.rest.services.user.utils.AuthUtils;
 public class CustomerService implements UserService, BaseService<CustomerEntity> {
 
 	private static final AppLogger logger = LoggingManager.getLogger(CustomerService.class);
+
+	private static final String USER_TYPE = CommonConstants.UserTypes.CUSTOMER;
 
 	@Autowired
 	private CustomerRepository customerRepository;
@@ -123,6 +126,24 @@ public class CustomerService implements UserService, BaseService<CustomerEntity>
 		CustomerEntity customer = (CustomerEntity) userService.registerUser(phone, userType, CustomerEntity.newInstance());
 		customer.setAllowedSessions(ParamsUtils.getIntegerParam("CUSTOMER_ALLOWED_SESSIONS", 2));
 		return save(customer);
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	public CustomerEntity findOrCreateCustomer(String phone) {
+		CustomerEntity customer = findByPhone(phone);
+		if (customer == null) {
+			customer = createCustomer(phone, USER_TYPE);
+		}
+		return customer;
+	}
+
+	public CustomerEntity updateName(Long id, String name) {
+		CustomerEntity entity = findById(id);
+		if (entity == null) {
+			throw new ValidationException(ErrorBean.withError(AppErrors.USER_NOT_FOUND, "User not found", "id"));
+		}
+		entity.setName(name);
+		return save(entity);
 	}
 
 	public CustomerEntity buildCustomerEntity(GoogleUser googleUser, CustomerEntity customer) {

@@ -9,4 +9,12 @@ public class UserServiceUtil {
 	      .matcher(emailAddress)
 	      .matches();
 	}
+
+	public static String formatPhoneNumber(String countryCode, String phone) {
+		if (phone == null) {
+			throw new IllegalArgumentException("Phone number cannot be null");
+		}
+		String combinedPhoneNumber = countryCode != null ? countryCode + phone : phone;
+		return combinedPhoneNumber.replaceAll("\\+", "");
+	}
 }
