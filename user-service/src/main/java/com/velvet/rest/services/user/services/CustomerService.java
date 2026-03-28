@@ -11,6 +11,7 @@ import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -132,7 +133,11 @@ public class CustomerService implements UserService, BaseService<CustomerEntity>
 	public CustomerEntity findOrCreateCustomer(String phone) {
 		CustomerEntity customer = findByPhone(phone);
 		if (customer == null) {
-			customer = createCustomer(phone, USER_TYPE);
+			try {
+				customer = createCustomer(phone, USER_TYPE);
+			} catch (DataIntegrityViolationException e) {
+				customer = findByPhone(phone);
+			}
 		}
 		return customer;
 	}

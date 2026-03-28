@@ -3,6 +3,7 @@ package com.velvet.rest.services.user.beans;
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.velvet.rest.services.user.entity.ChauffeurConstants.MaritalStatus;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
@@ -29,11 +30,21 @@ public class ChauffeurBean extends UserBean {
 
 	private LocalDate dateOfBirth;
 
-	private ChauffeurDocuments documents;
-
 	private Double rating;
 
+	private MaritalStatus maritalStatus;
+
+	private LocalDate dlExpiryDate;
+
+	private Boolean hasCriminalRecord;
+
+	private ChauffeurDocuments documents;
+
 	private ChauffeurMetadata metadata;
+
+	private ChauffeurAddress address;
+
+	private ChauffeurBankDetails bankDetails;
 
 	public static ChauffeurBean newInstance() {
 		return new ChauffeurBean();

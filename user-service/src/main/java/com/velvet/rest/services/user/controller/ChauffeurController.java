@@ -16,9 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.velvet.rest.common.beans.ErrorBean;
 import com.velvet.rest.common.constants.CommonConstants;
-import com.velvet.rest.common.exceptions.ValidationException;
 import com.velvet.rest.common.dbsupport.pagination.PageAndSortRequest.SortDirection;
 import com.velvet.rest.common.dbsupport.pagination.PageAndSortResult;
 import com.velvet.rest.common.websupport.base.BaseController;
@@ -26,8 +24,8 @@ import com.velvet.rest.services.common.mapper.BaseMapper;
 import com.velvet.rest.services.user.beans.ChauffeurBean;
 import com.velvet.rest.services.user.beans.ChauffeurProfileBean;
 import com.velvet.rest.services.user.entity.ChauffeurEntity;
-import com.velvet.rest.services.user.errors.AppErrors;
 import com.velvet.rest.services.user.services.ChauffeurService;
+import com.velvet.rest.services.user.utils.UserServiceUtil;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -41,6 +39,8 @@ public class ChauffeurController implements BaseController {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChauffeurController.class);
 
+	private static final String USER_TYPE = CommonConstants.UserTypes.CHAUFFEUR;
+
 	@Autowired
 	private ChauffeurService chauffeurService;
 
@@ -51,16 +51,14 @@ public class ChauffeurController implements BaseController {
 	@ApiOperation(value = "Create a new Chauffeur", nickname = "createChauffeur")
 	@PostMapping("/users/chauffeurs")
 	public ResponseEntity<ChauffeurBean> createChauffeur(@Valid @RequestBody ChauffeurBean chauffeurBean) {
-		String phone = chauffeurBean.getCountryCode() != null
-				? chauffeurBean.getCountryCode() + chauffeurBean.getPhone()
-				: chauffeurBean.getPhone();
-		ChauffeurEntity chauffeur = chauffeurService.createChauffeur(phone, CommonConstants.UserTypes.CHAUFFEUR, chauffeurBean);
+		String phone = UserServiceUtil.formatPhoneNumber(chauffeurBean.getCountryCode(), chauffeurBean.getPhone());
+		ChauffeurEntity chauffeur = chauffeurService.createChauffeur(phone, USER_TYPE, chauffeurBean);
 		return ResponseEntity.status(HttpStatus.CREATED).body(getMapper().mapSrcToDest(chauffeur, ChauffeurBean.newInstance()));
 	}
 
 	@ApiOperation(value = "List all Chauffeurs paginated", nickname = "findChauffeurListPaginated")
 	@GetMapping("/users/chauffeurs")
-	public PageAndSortResult<ChauffeurBean> findAllPaginated(@RequestParam(defaultValue = "1") Integer pageNo,
+	public ResponseEntity<PageAndSortResult<ChauffeurBean>> findAllPaginated(@RequestParam(defaultValue = "1") Integer pageNo,
 			@RequestParam(defaultValue = "20") Integer pageSize, @RequestParam(required = false) String sortBy,
 			@RequestParam(required = false) SortDirection sortDirection, HttpServletRequest request) {
 		logger.info("findAllPaginated :: pageNo: {}, pageSize: {}, sortBy: {}", pageNo, pageSize, sortBy);
@@ -73,7 +71,7 @@ public class ChauffeurController implements BaseController {
 		if (results != null && results.getData() != null) {
 			response = prepareResponsePageData(results, ChauffeurBean.class);
 		}
-		return response;
+		return ResponseEntity.ok(response);
 	}
 
 	//CHAUFFEUR APP INTERNAL PROFILE
@@ -81,9 +79,6 @@ public class ChauffeurController implements BaseController {
 	@GetMapping("/users/chauffeurs/profile")
 	public ResponseEntity<ChauffeurProfileBean> getChauffeurProfile() {
 		ChauffeurEntity chauffeur = chauffeurService.getAuthEntity();
-		if (chauffeur == null) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-		}
 		ChauffeurProfileBean profile = getMapper().mapSrcToDest(chauffeur, ChauffeurProfileBean.newInstance());
 		if (chauffeur.getMetadata() != null) {
 			profile.setNumberOfRides(chauffeur.getMetadata().getNumberOfRides());
@@ -94,37 +89,23 @@ public class ChauffeurController implements BaseController {
 	//GET CHAUFFEUR BY ID -> ADMIN PORTAL
 	@ApiOperation(value = "Get Chauffeur by ID", nickname = "getChauffeurById")
 	@GetMapping("/users/chauffeurs/{id}")
-	public ChauffeurBean getChauffeurById(@PathVariable Long id) {
-		ChauffeurEntity chauffeur = chauffeurService.findById(id);
-		if (chauffeur == null) {
-			throw new ValidationException(
-					ErrorBean.withError(AppErrors.USER_NOT_FOUND, "Chauffeur not found with the provided Id", "id"));
-		}
-		return getMapper().mapSrcToDest(chauffeur, ChauffeurBean.newInstance());
+	public ResponseEntity<ChauffeurBean> getChauffeurById(@PathVariable Long id) {
+		ChauffeurEntity chauffeur = chauffeurService.getById(id);
+		return ResponseEntity.ok(getMapper().mapSrcToDest(chauffeur, ChauffeurBean.newInstance()));
 	}
 
 	//TOGGLE BLOCK/UNBLOCK A CHAUFFEUR -> ADMIN PORTAL
 	@ApiOperation(value = "Toggle Block/Unblock Chauffeur", nickname = "toggleBlockChauffeur")
 	@PostMapping("/users/chauffeurs/{id}/toggle-block")
 	public ResponseEntity<String> toggleBlockChauffeur(@PathVariable Long id) {
-		ChauffeurEntity chauffeur = chauffeurService.findById(id);
-		if (chauffeur == null) {
-			throw new ValidationException(
-					ErrorBean.withError(AppErrors.USER_NOT_FOUND, "Chauffeur not found with the provided Id", "id"));
-		}
-		boolean isBlocked = chauffeur.getBlocked();
-		chauffeur.setBlocked(!isBlocked);
-		chauffeurService.save(chauffeur);
-		if (isBlocked == false) {
-			chauffeurService.logoutById(id);
-		}
-		return ResponseEntity.ok(isBlocked == false ? "Chauffeur Blocked Successfully" : "Chauffeur Unblocked Successfully");
+		ChauffeurEntity chauffeur = chauffeurService.toggleBlock(id);
+		return ResponseEntity.ok(chauffeur.getBlocked() ? "Chauffeur Blocked Successfully" : "Chauffeur Unblocked Successfully");
 	}
 
 	//UPDATE CHAUFFEUR -> ADMIN PORTAL
 	@ApiOperation(value = "Update a Chauffeur", nickname = "updateChauffeur")
 	@PutMapping("/users/chauffeurs/{id}")
-	public ResponseEntity<ChauffeurBean> updateChauffeur(@PathVariable Long id, @Valid @RequestBody ChauffeurBean request) {
+	public ResponseEntity<ChauffeurBean> updateChauffeur(@PathVariable Long id, @RequestBody ChauffeurBean request) {
 		ChauffeurEntity chauffeur = chauffeurService.updateChauffeur(id, request);
 		return ResponseEntity.ok(getMapper().mapSrcToDest(chauffeur, ChauffeurBean.newInstance()));
 	}

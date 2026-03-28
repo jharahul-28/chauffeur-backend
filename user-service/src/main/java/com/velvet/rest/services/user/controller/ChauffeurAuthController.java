@@ -1,7 +1,6 @@
 package com.velvet.rest.services.user.controller;
 
 import javax.validation.Valid;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import org.apache.commons.lang3.BooleanUtils;
-
-import com.velvet.rest.common.beans.ErrorBean;
 import com.velvet.rest.common.constants.CommonConstants;
-import com.velvet.rest.common.exceptions.ValidationException;
 import com.velvet.rest.common.utils.SessionUtils.ApplicationId;
 import com.velvet.rest.common.websupport.base.BaseController;
 import com.velvet.rest.services.common.mapper.BaseMapper;
@@ -25,11 +19,10 @@ import com.velvet.rest.services.user.beans.ChauffeurBean;
 import com.velvet.rest.services.user.beans.LoginGenerateOtpRequest;
 import com.velvet.rest.services.user.beans.LoginOtpRequest;
 import com.velvet.rest.services.user.entity.ChauffeurEntity;
-import com.velvet.rest.services.user.errors.AppErrors;
 import com.velvet.rest.services.user.services.AppSessionService;
 import com.velvet.rest.services.user.services.ChauffeurService;
 import com.velvet.rest.services.user.services.OtpTokenService;
-
+import com.velvet.rest.services.user.utils.UserServiceUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import springfox.documentation.annotations.ApiIgnore;
@@ -55,9 +48,9 @@ public class ChauffeurAuthController implements BaseController {
 	@Autowired
 	private OtpTokenService otpService;
 
-	private static String USER_TYPE = CommonConstants.UserTypes.CHAUFFEUR;
+	private static final String USER_TYPE = CommonConstants.UserTypes.CHAUFFEUR;
 
-	private static ApplicationId APP_ID = ApplicationId.CHAUFFEUR_APP;
+	private static final ApplicationId APP_ID = ApplicationId.CHAUFFEUR_APP;
 
 	/**
 	 * Generate OTP for Chauffeur Application.
@@ -66,15 +59,9 @@ public class ChauffeurAuthController implements BaseController {
 	@PostMapping("/users/chauffeurs/auth/otp/generate")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void generateOtp(@Valid @RequestBody LoginGenerateOtpRequest otpRequest, @ApiIgnore Errors errors) {
-		logger.info("generateOtp :: request: {}", otpRequest);
-		String phone = otpRequest.getCountryCode() + otpRequest.getPhone();
-		ChauffeurEntity chauffeur = chauffeurService.findByPhone(phone);
-		if (chauffeur == null) {
-			throw new ValidationException(ErrorBean.withError(AppErrors.USER_NOT_FOUND, "No chauffeur account found for this phone number. Please contact admin.", "phone"));
-		}
-		if (BooleanUtils.isTrue(chauffeur.getBlocked())) {
-			throw new ValidationException(ErrorBean.withError(AppErrors.USER_BLOCKED, "User is blocked. Please contact support.", "blocked"));
-		}
+
+		String phone = UserServiceUtil.formatPhoneNumber(otpRequest.getCountryCode(), otpRequest.getPhone());
+		ChauffeurEntity chauffeur = chauffeurService.getByPhone(phone);
 		otpService.generatePhoneOtp(chauffeur.getId(), phone, otpRequest.getVerificationId());
 	}
 
@@ -84,15 +71,9 @@ public class ChauffeurAuthController implements BaseController {
 	@ApiOperation(value = "Login/Register using OTP for Chauffeur Application", nickname = "verifyChauffeurOtpAndLogin")
 	@PostMapping("/users/chauffeurs/auth/otp/verify")
 	public AuthResponse verifyOtpAndLogin(@Valid @RequestBody LoginOtpRequest otpRequest, @ApiIgnore Errors errors) {
-		logger.info("verifyOtpAndLogin :: request: {}", otpRequest);
-		String phone = otpRequest.getCountryCode() + otpRequest.getPhone();
-		ChauffeurEntity chauffeur = chauffeurService.findByPhone(phone);
-		if (chauffeur == null) {
-			throw new ValidationException(ErrorBean.withError(AppErrors.USER_NOT_FOUND, "No chauffeur account found for this phone number. Please contact admin.", "phone"));
-		}
-		if (BooleanUtils.isTrue(chauffeur.getBlocked())) {
-			throw new ValidationException(ErrorBean.withError(AppErrors.USER_BLOCKED, "User is blocked. Please contact support.", "blocked"));
-		}
+
+		String phone = UserServiceUtil.formatPhoneNumber(otpRequest.getCountryCode(), otpRequest.getPhone());
+		ChauffeurEntity chauffeur = chauffeurService.getByPhone(phone);
 		chauffeurService.verifyOtp(chauffeur.getId(), phone, otpRequest.getOtp());
 		return buildLoginResponse(chauffeur);
 	}
