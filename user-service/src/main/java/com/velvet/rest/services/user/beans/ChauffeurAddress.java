@@ -21,6 +21,7 @@ public class ChauffeurAddress implements Serializable {
 
 		private static final long serialVersionUID = 1L;
 
+		private String houseNo;
 		private String street;
 		private String city;
 		private String state;

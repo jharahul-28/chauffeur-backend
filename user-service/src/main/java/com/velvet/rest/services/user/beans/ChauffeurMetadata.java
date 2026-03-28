@@ -18,5 +18,11 @@ public class ChauffeurMetadata implements Serializable {
 
 	private Double workingHours = 0.0;
 
+	private Integer ratingCount = 0;
+
+	private Integer drivingStartYear;
+
+	private Integer luxuryDrivingStartYear;
+
 	private List<String> luxuryBrandsDriven = new ArrayList<>();
 }

@@ -38,10 +38,6 @@ public class ChauffeurBean extends UserBean {
 
 	private Boolean hasCriminalRecord;
 
-	private Integer totalDrivingExperience;
-
-	private Integer luxuryDrivingExperience;
-
 	private ChauffeurDocuments documents;
 
 	private ChauffeurMetadata metadata;

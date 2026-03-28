@@ -63,12 +63,6 @@ public class ChauffeurEntity extends UserEntity implements Serializable, Chauffe
 	@Column(name = "has_criminal_record")
 	private Boolean hasCriminalRecord;
 
-	@Column(name = "total_driving_experience")
-	private Integer totalDrivingExperience;
-
-	@Column(name = "luxury_driving_experience")
-	private Integer luxuryDrivingExperience;
-
 	@Type(type = "jsonb")
 	@Column(name = "documents", columnDefinition = "jsonb")
 	private ChauffeurDocuments documents;
@@ -89,7 +83,7 @@ public class ChauffeurEntity extends UserEntity implements Serializable, Chauffe
 		return new ChauffeurEntity();
 	}
 
-	public ChauffeurEntity buildChauffeur(ChauffeurBean bean) {
+	public ChauffeurEntity createChauffeur(ChauffeurBean bean) {
 		this.setBlocked(false);
 		this.setIsDeleted(false);
 		this.setEmail(bean.getEmail());
@@ -103,8 +97,6 @@ public class ChauffeurEntity extends UserEntity implements Serializable, Chauffe
 		this.setMaritalStatus(bean.getMaritalStatus());
 		this.setDlExpiryDate(bean.getDlExpiryDate());
 		this.setHasCriminalRecord(bean.getHasCriminalRecord());
-		this.setTotalDrivingExperience(bean.getTotalDrivingExperience());
-		this.setLuxuryDrivingExperience(bean.getLuxuryDrivingExperience());
 		this.setAddress(bean.getAddress());
 		this.setBankDetails(bean.getBankDetails());
 		if (bean.getMetadata() != null) {
@@ -113,6 +105,12 @@ public class ChauffeurEntity extends UserEntity implements Serializable, Chauffe
 			}
 			if (bean.getMetadata().getLuxuryBrandsDriven() != null) {
 				this.getMetadata().setLuxuryBrandsDriven(bean.getMetadata().getLuxuryBrandsDriven());
+			}
+			if (bean.getMetadata().getDrivingStartYear() != null) {
+				this.getMetadata().setDrivingStartYear(bean.getMetadata().getDrivingStartYear());
+			}
+			if (bean.getMetadata().getLuxuryDrivingStartYear() != null) {
+				this.getMetadata().setLuxuryDrivingStartYear(bean.getMetadata().getLuxuryDrivingStartYear());
 			}
 		}
 		return this;
