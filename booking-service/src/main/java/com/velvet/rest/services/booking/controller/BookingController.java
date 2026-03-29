@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.velvet.rest.common.dbsupport.pagination.PageAndSortRequest.SortDirection;
 import com.velvet.rest.common.dbsupport.pagination.PageAndSortResult;
+import com.velvet.rest.services.booking.entity.BookingConstants.Status;
 import java.util.List;
 
 import com.velvet.rest.common.websupport.base.BaseController;
@@ -54,16 +55,19 @@ public class BookingController implements BaseController {
 		return ResponseEntity.ok(getMapper().mapSrcToDest(booking, BookingBean.newInstance()));
 	}
 
-	@ApiOperation(value = "Get all requested bookings paginated", nickname = "getRequestedBookings")
-	@GetMapping("/bookings/requested")
-	public PageAndSortResult<BookingBean> getRequestedBookings(@RequestParam(defaultValue = "1") Integer pageNo,
-			@RequestParam(defaultValue = "20") Integer pageSize, @RequestParam(required = false) String sortBy,
+	@ApiOperation(value = "Get all bookings paginated, optionally filtered by status and/or customerId", nickname = "getBookings")
+	@GetMapping("/bookings")
+	public PageAndSortResult<BookingBean> getBookings(@RequestParam(defaultValue = "1") Integer pageNo,
+			@RequestParam(defaultValue = "20") Integer pageSize,
+			@RequestParam(required = false) Status status,
+			@RequestParam(required = false) Long customerId,
+			@RequestParam(required = false) String sortBy,
 			@RequestParam(required = false) SortDirection sortDirection) {
 		java.util.Map<String, SortDirection> sort = null;
 		if (sortBy != null) {
 			sort = buildSortMap(sortBy, sortDirection);
 		}
-		final PageAndSortResult<BookingEntity> results = bookingService.getRequestedBookings(pageSize, pageNo, sort);
+		final PageAndSortResult<BookingEntity> results = bookingService.getBookings(status, customerId, pageSize, pageNo, sort);
 		PageAndSortResult<BookingBean> response = new PageAndSortResult<>();
 		if (results != null && results.getData() != null) {
 			response = prepareResponsePageData(results, BookingBean.class);

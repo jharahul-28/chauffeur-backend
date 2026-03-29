@@ -296,10 +296,15 @@ public class BookingService implements BaseService<BookingEntity> {
 		return bookingWaypointRepository.findActiveByBookingIdOrdered(bookingId);
 	}
 
-	public PageAndSortResult<BookingEntity> getRequestedBookings(Integer pageSize, Integer pageNo, Map<String, SortDirection> sort) {
+	public PageAndSortResult<BookingEntity> getBookings(Status status, Long customerId, Integer pageSize, Integer pageNo, Map<String, SortDirection> sort) {
 		Map<String, Object> filters = new HashMap<>();
-		filters.put("status", Status.REQUESTED);
 		filters.put("active", 1);
+		if (status != null) {
+			filters.put("status", status);
+		}
+		if (customerId != null) {
+			filters.put("customerId", customerId);
+		}
 		try {
 			return findPagedRecords(filters, sort, pageSize, pageNo);
 		} catch (Exception e) {
