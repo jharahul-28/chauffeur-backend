@@ -18,8 +18,4 @@ public class AppErrors extends Errors {
 
 	public static final String INVALID_WAYPOINT_ORDER = "invalid_waypoint_order";
 
-	public static final String VEHICLE_ASSIGNMENT_NOT_FOUND = "vehicle_assignment_not_found";
-
-	public static final String INVALID_RIDE_STATUS_TRANSITION = "invalid_ride_status_transition";
-
 }
