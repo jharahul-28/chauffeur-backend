@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,17 +30,9 @@ public class BaseMapper<S, D> {
 	@Autowired
 	private ObjectMapper jacksonMapper;
 
-	@SuppressWarnings("unchecked")
 	public <S, D> D mapSrcToDest(S src, D dest) {
-		try {
-			Class<D> clazz = (Class<D>) dest.getClass();
-			// Serialize the original object to JSON
-			String json = jacksonMapper.writeValueAsString(src);
-			// Deserialize back to a new object
-			return jacksonMapper.readValue(json, clazz);
-		} catch (Exception e) {
-			throw new RuntimeException("Deep copy failed", e);
-		}
+		BeanUtils.copyProperties(src, dest);
+		return dest;
 	}
 
 	public <T> T convertMap(Map<String, Object> map, Class<T> clazz) {
